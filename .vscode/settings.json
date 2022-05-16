@@ -1,0 +1,16 @@
+{
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.linting.pylintArgs": [
+      "--max-line-length=119"
+    ],
+    "editor.detectIndentation": false,
+    "editor.insertSpaces": true,
+    "editor.tabSize": 4,
+    "[json]": {
+      "editor.tabSize": 2
+    },
+    "[yaml]": {
+      "editor.tabSize": 2
+    }
+}
