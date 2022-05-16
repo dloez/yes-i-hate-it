@@ -4,6 +4,7 @@ verify_ssl = true
 name = "pypi"
 
 [packages]
+tweepy = "*"
 
 [dev-packages]
 pytest = "*"

@@ -6,6 +6,9 @@ Main file which will handle:
     - respond with the fetch data
 """
 import os
+import tweepy
+
+from exceptions import ValueExceeded, ValueInferior
 
 
 def load_env():
@@ -18,6 +21,36 @@ def load_env():
         TWITTER_BEARER_TOKEN: os.getenv(TWITTER_BEARER_TOKEN)
     }
     return tokens
+
+
+def get_tweets(user_name, max_results):
+    """Get 'x' amount of latests tweets from 'y' user"""
+    # test max_result value
+    if max_results < 5:
+        raise ValueInferior("asd")
+    if max_results > 100:
+        raise ValueExceeded("asd")
+
+    # init tweepy client object to call Twitter REST API
+    tokens = load_env()
+    client = tweepy.Client(tokens[TWITTER_BEARER_TOKEN])
+
+    # get user from given user_name
+    user = client.get_user(username=user_name)
+
+    # get latest amount of tweets from user_name
+    tweets = client.get_users_tweets(id=user.data['id'], max_results=max_results)
+    return tweets.data
+
+
+def process_tweets(_tweets):
+    """
+    Get twitter raw API from tweets and returns a list fo tweets with:
+        - tweet body
+        - tweet id
+        - tweet user id
+    """
+
 
 def main():
     """main function"""
