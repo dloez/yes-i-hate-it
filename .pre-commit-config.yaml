@@ -1,16 +1,24 @@
 repos:
--   repo: https://github.com/pre-commit/pre-commit-hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.4.0
     hooks:
-    -   id: end-of-file-fixer
-    -   id: trailing-whitespace
-    -   id: mixed-line-ending
-        args: [--fix=lf]
--   repo: local
+    - id: end-of-file-fixer
+    - id: trailing-whitespace
+    - id: mixed-line-ending
+      args: [--fix=lf]
+  - repo: local
     hooks:
-    -   id: pylint
-        args: [src tests]
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
+    - id: pylint
+      args: [src tests]
+      name: pylint
+      entry: pylint
+      language: system
+      types: [python]
+  - repo: local
+    hooks:
+    - id: mypy
+      args: [src]
+      name: mypy
+      entry: mypy
+      language: system
+      types: [python]
