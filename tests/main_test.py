@@ -1,18 +1,13 @@
 """Tests for main.py"""
-import sys
-sys.path.append('./src')
-
-# pylint: disable=C0413
-import tweepy
 import pytest
+import tweepy
 
-from src.main import load_env
-from src.main import get_tweets
+from yes_i_hate_it.main import get_tweets
+from yes_i_hate_it.main import load_env
+from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
+from yes_i_hate_it.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
 
-from src.main import TWITTER_API_KEY, TWITTER_API_SECRET
-from src.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
-
-from src.exceptions import ValueExceeded, ValueInferior
+from yes_i_hate_it.exceptions import ValueExceeded, ValueInferior
 
 
 def test_load_env():
@@ -39,7 +34,7 @@ def test_load_env():
 def test_get_tweets():
     """Test main.get_tweets"""
     max_results = 10
-    user_name = "javieff16YT"
+    user_name = 'javieff16YT'
     tweets = get_tweets(user_name, max_results)
 
     assert isinstance(tweets, list)

@@ -10,6 +10,12 @@ tweepy = "*"
 pytest = "*"
 pre-commit = "*"
 pylint = "*"
+mypy = "*"
+pytest-cov = "*"
 
 [requires]
 python_version = "3.8"
+
+[dev-packages.e1839a8]
+path = "."
+editable = true

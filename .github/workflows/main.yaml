@@ -1,17 +1,23 @@
-name: Run linter and tests
+name: Run pylint, pytest and mypy
 on:
   pull_request:
     branches: main
+  push:
+    branches: main
   workflow_dispatch:
 jobs:
-  build:
-    runs-on: ubuntu-latest
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        python-version: ['3.8', '3.9', '3.10']
     steps:
       - uses: actions/checkout@v2
-      - name: Set up Python 3.8.10
+      - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
         with:
-          python-version: 3.8.10
+          python-version: ${{ matrix.python-version }}
       - name: Install dependencies
         run: |
           pip install pipenv
@@ -26,3 +32,5 @@ jobs:
           TWITTER_ACCESS_SECRET: ${{ secrets.TWITTER_ACCESS_SECRET }}
           TWITTER_BEARER_TOKEN: ${{ secrets.TWITTER_BEARER_TOKEN }}
         run: pytest
+      - name: Run mypy
+        run: mypy src

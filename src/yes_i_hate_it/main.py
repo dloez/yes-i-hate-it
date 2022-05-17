@@ -5,10 +5,11 @@ Main file which will handle:
     - if it is football related, fetch data from a random API
     - respond with the fetch data
 """
+from typing import List
 import os
 import tweepy
 
-from exceptions import ValueExceeded, ValueInferior
+from yes_i_hate_it.exceptions import ValueExceeded, ValueInferior
 
 
 def load_env():
@@ -23,13 +24,13 @@ def load_env():
     return tokens
 
 
-def get_tweets(user_name, max_results):
+def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
     """Get 'x' amount of latests tweets from 'y' user"""
     # test max_result value
     if max_results < 5:
-        raise ValueInferior("asd")
+        raise ValueInferior
     if max_results > 100:
-        raise ValueExceeded("asd")
+        raise ValueExceeded
 
     # init tweepy client object to call Twitter REST API
     tokens = load_env()
@@ -40,7 +41,7 @@ def get_tweets(user_name, max_results):
 
     # get latest amount of tweets from user_name
     tweets = client.get_users_tweets(id=user.data['id'], max_results=max_results)
-    return tweets.data
+    return list(tweets.data)
 
 
 def process_tweets(_tweets):
@@ -54,6 +55,7 @@ def process_tweets(_tweets):
 
 def main():
     """main function"""
+    # print(get_tweets('Javieff16YT', 30))
 
 
 TWITTER_API_KEY = 'TWITTER_API_KEY'
