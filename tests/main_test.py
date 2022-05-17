@@ -1,11 +1,7 @@
 """Tests for main.py"""
-import sys
-sys.path.append('./src')
-
-# pylint: disable=C0413
-from src.main import load_env
-from src.main import TWITTER_API_KEY, TWITTER_API_SECRET
-from src.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
+from yes_i_hate_it.main import load_env
+from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
+from yes_i_hate_it.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
 
 
 def test_load_env():
