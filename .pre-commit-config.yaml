@@ -14,11 +14,3 @@ repos:
       entry: pylint
       language: system
       types: [python]
-  - repo: local
-    hooks:
-    - id: mypy
-      args: [src]
-      name: mypy
-      entry: mypy
-      language: system
-      types: [python]
