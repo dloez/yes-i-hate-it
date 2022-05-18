@@ -54,6 +54,8 @@ def is_new_tweet(new_tweet: tweepy.Tweet) -> bool:
     """
     # verify if there is an old tweet stored
     if not OLD_TWEET_PATH.exists():
+        # pylint: disable=no-member
+        # above rule is required to avoid pylint errors on python3.10
         OLD_TWEET_PATH.parents[0].mkdir(exist_ok=True)
 
         with open(OLD_TWEET_PATH, 'wb') as handle:
