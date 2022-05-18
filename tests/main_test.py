@@ -2,9 +2,11 @@
 import pytest
 import tweepy
 
-from yes_i_hate_it.main import is_new_tweet
-from yes_i_hate_it.main import get_tweets
 from yes_i_hate_it.main import load_env
+from yes_i_hate_it.main import get_tweets
+from yes_i_hate_it.main import is_new_tweet
+from yes_i_hate_it.main import is_football
+
 from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
 from yes_i_hate_it.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
 
@@ -62,3 +64,17 @@ def test_is_new_test():
 
     assert is_new_tweet(tweets[0])
     assert not is_new_tweet(tweets[0])
+
+def test_is_football():
+    """Test main.is_football"""
+    test_phrases = (
+        "Me gusta el fúrbo, odio a los arbitros",
+        "muahhh lloroo, el madrid es una mierda muahhhh",
+        "frase aleatoria",
+        "Probablemente el futbol sea de las peores enfermedades del mundo"
+    )
+
+    assert is_football(test_phrases[0])
+    assert is_football(test_phrases[1])
+    assert not is_football(test_phrases[2])
+    assert is_football(test_phrases[3])

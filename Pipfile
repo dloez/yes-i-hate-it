@@ -13,8 +13,8 @@ pylint = "*"
 mypy = "*"
 pytest-cov = "*"
 
-[requires]
-python_version = "3.8"
+[packages.thefuzz]
+extras = [ "speedup",]
 
 [dev-packages.e1839a8]
 path = "."

@@ -6,12 +6,19 @@ Main file which will handle:
     - respond with the fetch data
 """
 from typing import List
-from pathlib import Path
 import pickle
 import os
+import re
 import tweepy
+from thefuzz import fuzz
 
 from yes_i_hate_it.exceptions import ValueExceeded, ValueInferior
+
+from yes_i_hate_it.config import TWITTER_API_KEY, TWITTER_API_SECRET
+from yes_i_hate_it.config import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET
+from yes_i_hate_it.config import TWITTER_BEARER_TOKEN
+from yes_i_hate_it.config import OLD_TWEET_PATH
+from yes_i_hate_it.config import KEY_WORDS, MIN_RATIO
 
 
 def load_env():
@@ -73,17 +80,35 @@ def is_new_tweet(new_tweet: tweepy.Tweet) -> bool:
     return False
 
 
+def is_football(text: str) -> bool:
+    """
+    Evaluate if given text is fooball or not looking at
+    similarities between given text and config.KEY_WORDS
+    """
+    replacements = (
+        ("á", "a"),
+        ("é", "e"),
+        ("í", "i"),
+        ("ó", "o"),
+        ("ú", "u"),
+    )
+
+    for word in text.split(' '):
+        # normalize words
+        word = re.sub('[^0-9a-zA-Z]+', '', word).lower()
+        for accent, no_accent in replacements:
+            word = word.replace(accent, no_accent)
+
+        for key_word in KEY_WORDS:
+            ratio = fuzz.partial_ratio(word, key_word)
+            if ratio > MIN_RATIO:
+                return True
+    return False
+
+
 def main():
     """main function"""
 
-
-TWITTER_API_KEY = 'TWITTER_API_KEY'
-TWITTER_API_SECRET = 'TWITTER_API_SECRET'
-TWITTER_ACCESS_TOKEN = 'TWITTER_ACCESS_TOKEN'
-TWITTER_ACCESS_SECRET = 'TWITTER_ACCESS_SECRET'
-TWITTER_BEARER_TOKEN = 'TWITTER_BEARER_TOKEN'
-
-OLD_TWEET_PATH = Path('./data/old_tweet_id.pickle')
 
 if __name__ == '__main__':
     main()
