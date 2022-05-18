@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 tweepy = "*"
+requests = "*"
 
 [dev-packages]
 pytest = "*"
@@ -12,6 +13,7 @@ pre-commit = "*"
 pylint = "*"
 mypy = "*"
 pytest-cov = "*"
+types-requests = "*"
 
 [packages.thefuzz]
 extras = [ "speedup",]

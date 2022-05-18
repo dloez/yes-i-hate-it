@@ -9,7 +9,9 @@ from typing import List
 import pickle
 import os
 import re
+import random
 import tweepy
+import requests
 from thefuzz import fuzz
 
 from yes_i_hate_it.exceptions import ValueExceeded, ValueInferior
@@ -19,6 +21,8 @@ from yes_i_hate_it.config import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET
 from yes_i_hate_it.config import TWITTER_BEARER_TOKEN
 from yes_i_hate_it.config import OLD_TWEET_PATH
 from yes_i_hate_it.config import KEY_WORDS, MIN_RATIO
+from yes_i_hate_it.config import VEHICLE_REST_URL, VEHICLE_HEADER_TEMPLATE
+from yes_i_hate_it.config import TARGET_DATA, MAX_TWEET_CHARS
 
 
 def load_env():
@@ -106,8 +110,30 @@ def is_football(text: str) -> bool:
     return False
 
 
+def request_vehicle_data() -> str:
+    """Get random vehicle data and format it to fit on a tweet"""
+    # pylint: disable = broad-except
+    try:
+        data = requests.get(VEHICLE_REST_URL).json()
+    except Exception:
+        print("Vehicle REST API is unavailable!!")
+
+    formated_data = VEHICLE_HEADER_TEMPLATE.format(data['make_and_model'], data['doors'])
+    available_chars = MAX_TWEET_CHARS - len(formated_data)
+
+    target = random.choice(TARGET_DATA)
+    for spec in data[target]:
+        spec += ', '
+        remain_chars = available_chars - len(spec)
+        if remain_chars >= 0:
+            formated_data += spec
+            available_chars = remain_chars
+    return formated_data[:-2] + '.'
+
+
 def main():
     """main function"""
+    print(request_vehicle_data())
 
 
 if __name__ == '__main__':

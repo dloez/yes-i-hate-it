@@ -6,9 +6,11 @@ from yes_i_hate_it.main import load_env
 from yes_i_hate_it.main import get_tweets
 from yes_i_hate_it.main import is_new_tweet
 from yes_i_hate_it.main import is_football
+from yes_i_hate_it.main import request_vehicle_data
 
 from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
 from yes_i_hate_it.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
+from yes_i_hate_it.main import MAX_TWEET_CHARS
 
 from yes_i_hate_it.exceptions import ValueExceeded, ValueInferior
 
@@ -65,6 +67,7 @@ def test_is_new_test():
     assert is_new_tweet(tweets[0])
     assert not is_new_tweet(tweets[0])
 
+
 def test_is_football():
     """Test main.is_football"""
     test_phrases = (
@@ -78,3 +81,10 @@ def test_is_football():
     assert is_football(test_phrases[1])
     assert not is_football(test_phrases[2])
     assert is_football(test_phrases[3])
+
+
+def test_request_vehicle_data():
+    """Test main.request_vehicle_data"""
+    data = request_vehicle_data()
+    assert isinstance(data, str)
+    assert len(data) <= MAX_TWEET_CHARS
