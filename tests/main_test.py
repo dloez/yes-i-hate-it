@@ -2,6 +2,7 @@
 import pytest
 import tweepy
 
+from yes_i_hate_it.main import is_new_tweet
 from yes_i_hate_it.main import get_tweets
 from yes_i_hate_it.main import load_env
 from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
@@ -38,11 +39,26 @@ def test_get_tweets():
     tweets = get_tweets(user_name, max_results)
 
     assert isinstance(tweets, list)
-    assert len(tweets) == max_results - 1
+    assert len(tweets) == max_results
+
     assert isinstance(tweets[0], tweepy.tweet.Tweet)
+    assert 'text' in tweets[0]
+    assert isinstance(tweets[0].text, str)
+    assert 'id' in tweets[0]
+    assert isinstance(tweets[0].id, int)
 
     with pytest.raises(ValueExceeded):
         get_tweets(user_name, 102)
 
     with pytest.raises(ValueInferior):
         get_tweets(user_name, 1)
+
+
+def test_is_new_test():
+    """Test main.is_new_test"""
+    max_results = 10
+    user_name = 'javieff16YT'
+    tweets = get_tweets(user_name, max_results)
+
+    assert is_new_tweet(tweets[0])
+    assert not is_new_tweet(tweets[0])
