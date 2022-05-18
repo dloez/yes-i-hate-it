@@ -11,12 +11,21 @@ TWITTER_BEARER_TOKEN = 'TWITTER_BEARER_TOKEN'
 OLD_TWEET_PATH = Path('./data/old_tweet_id.pickle')
 
 KEY_WORDS = (
-    "futbol", "arbitro", "porteria",
-    "var", "atletico", "madrid"
+    "portero", "futbol", "gol",
+    "balon", "defensa", "central",
+    "lateral", "campo", "delantero",
+    "disparo", "tiro", "asistencia",
+    "centro", "corner", "descuento",
+    "penalti", "panenka","caño",
+    "equipo", "arbitro", "arbitraje",
+    "atleti", "atletico", "madrid",
+    "final", "champions", "vamos",
+    "liga", "copa", "fifa",
+    "ea", "handicap", "atletimedia"
 )
 MIN_RATIO = 80
 
-VEHICLE_REST_URL = "https://random-data-api.com/api/vehicle/random_vehicle"
+VEHICLE_REST_URL = 'https://random-data-api.com/api/vehicle/random_vehicle'
 VEHICLE_HEADER_TEMPLATE = "{}, {} doors. "
 TARGET_DATA = ('car_options', 'specs')
 MAX_TWEET_CHARS = 280
