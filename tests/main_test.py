@@ -7,6 +7,7 @@ from yes_i_hate_it.main import get_tweets
 from yes_i_hate_it.main import is_new_tweet
 from yes_i_hate_it.main import is_football
 from yes_i_hate_it.main import request_vehicle_data
+from yes_i_hate_it.main import reply_tweet
 
 from yes_i_hate_it.main import TWITTER_API_KEY, TWITTER_API_SECRET
 from yes_i_hate_it.main import TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET, TWITTER_BEARER_TOKEN
@@ -88,3 +89,10 @@ def test_request_vehicle_data():
     data = request_vehicle_data()
     assert isinstance(data, str)
     assert len(data) <= MAX_TWEET_CHARS
+
+
+def test_reply_tweet():
+    """Test main.reply_tweet"""
+    tweet_id = 1527050399559057409
+    text = "Sample text"
+    assert reply_tweet(tweet_id, text)
