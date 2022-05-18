@@ -37,6 +37,17 @@ def load_env():
     return tokens
 
 
+def _init_tweepy():
+    tokens = load_env()
+    return tweepy.Client(
+        bearer_token=tokens[TWITTER_BEARER_TOKEN],
+        consumer_key=tokens[TWITTER_API_KEY],
+        consumer_secret=tokens[TWITTER_API_SECRET],
+        access_token=tokens[TWITTER_ACCESS_TOKEN],
+        access_token_secret=tokens[TWITTER_ACCESS_SECRET]
+    )
+
+
 def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
     """Get 'x' amount of latests tweets from 'y' user"""
     # test max_result value
@@ -46,8 +57,7 @@ def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
         raise ValueExceeded
 
     # init tweepy client object to call Twitter REST API
-    tokens = load_env()
-    client = tweepy.Client(tokens[TWITTER_BEARER_TOKEN])
+    client = _init_tweepy()
 
     # get user from given user_name
     user = client.get_user(username=user_name)
@@ -131,9 +141,19 @@ def request_vehicle_data() -> str:
     return formated_data[:-2] + '.'
 
 
+def reply_tweet(tweet_id: int, text: str) -> bool:
+    """Reply to tweet with given text"""
+    client = _init_tweepy()
+    # pylint: disable = broad-except
+    try:
+        client.create_tweet(in_reply_to_tweet_id=tweet_id, text=text)
+    except Exception:
+        return False
+    return True
+
+
 def main():
     """main function"""
-    print(request_vehicle_data())
 
 
 if __name__ == '__main__':
