@@ -6,6 +6,8 @@ Main file which will handle:
     - respond with the fetch data
 """
 from typing import List
+from pathlib import Path
+import pickle
 import os
 import tweepy
 
@@ -44,18 +46,35 @@ def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
     return list(tweets.data)
 
 
-def process_tweets(_tweets):
+def is_new_tweet(new_tweet: tweepy.Tweet) -> bool:
     """
-    Get twitter raw API from tweets and returns a list fo tweets with:
-        - tweet body
-        - tweet id
-        - tweet user id
+    Detect if given tweet is the latest user tweet by comparing
+    given new_tweet with stored one.
+    If there is not a stored tweet, store new one and return True
     """
+    # verify if there is an old tweet stored
+    if not OLD_TWEET_PATH.exists():
+        # pylint: disable=no-member
+        # above rule is required to avoid pylint errors on python3.10
+        OLD_TWEET_PATH.parents[0].mkdir(exist_ok=True)
+
+        with open(OLD_TWEET_PATH, 'wb') as handle:
+            pickle.dump(new_tweet.id, handle, protocol=pickle.HIGHEST_PROTOCOL)
+        return True
+
+    # load old tweet
+    with open(OLD_TWEET_PATH, 'rb') as handle:
+        old_tweet_id = pickle.load(handle)
+
+    if new_tweet.id != old_tweet_id:
+        with open(OLD_TWEET_PATH, 'wb') as handle:
+            pickle.dump(new_tweet.id, handle)
+        return True
+    return False
 
 
 def main():
     """main function"""
-    # print(get_tweets('Javieff16YT', 30))
 
 
 TWITTER_API_KEY = 'TWITTER_API_KEY'
@@ -63,6 +82,8 @@ TWITTER_API_SECRET = 'TWITTER_API_SECRET'
 TWITTER_ACCESS_TOKEN = 'TWITTER_ACCESS_TOKEN'
 TWITTER_ACCESS_SECRET = 'TWITTER_ACCESS_SECRET'
 TWITTER_BEARER_TOKEN = 'TWITTER_BEARER_TOKEN'
+
+OLD_TWEET_PATH = Path('./data/old_tweet_id.pickle')
 
 if __name__ == '__main__':
     main()
