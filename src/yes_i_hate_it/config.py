@@ -15,3 +15,8 @@ KEY_WORDS = (
     "var", "atletico", "madrid"
 )
 MIN_RATIO = 80
+
+VEHICLE_REST_URL = "https://random-data-api.com/api/vehicle/random_vehicle"
+VEHICLE_HEADER_TEMPLATE = "{}, {} doors. "
+TARGET_DATA = ('car_options', 'specs')
+MAX_TWEET_CHARS = 280
