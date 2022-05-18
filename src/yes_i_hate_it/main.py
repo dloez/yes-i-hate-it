@@ -133,6 +133,7 @@ def request_vehicle_data() -> str:
 
 def main():
     """main function"""
+    print(request_vehicle_data())
 
 
 if __name__ == '__main__':
