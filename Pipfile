@@ -12,10 +12,6 @@ pre-commit = "*"
 pylint = "*"
 mypy = "*"
 pytest-cov = "*"
-typing-extensions = "*"
-
-[requires]
-python_version = "3.8"
 
 [packages.thefuzz]
 extras = [ "speedup",]
