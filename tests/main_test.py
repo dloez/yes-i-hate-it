@@ -1,4 +1,6 @@
 """Tests for main.py"""
+import random
+import string
 import pytest
 import tweepy
 
@@ -75,13 +77,15 @@ def test_is_football():
         "Me gusta el fúrbo, odio a los arbitros",
         "muahhh lloroo, el madrid es una mierda muahhhh",
         "frase aleatoria",
-        "Probablemente el futbol sea de las peores enfermedades del mundo"
+        "Probablemente el futbol sea de las peores enfermedades del mundo",
+        "LA ATLETIMEDIANETA VUELVE MAMADÍSIMA!!!"
     )
 
     assert is_football(test_phrases[0])
     assert is_football(test_phrases[1])
     assert not is_football(test_phrases[2])
     assert is_football(test_phrases[3])
+    assert is_football(test_phrases[4])
 
 
 def test_request_vehicle_data():
@@ -94,5 +98,5 @@ def test_request_vehicle_data():
 def test_reply_tweet():
     """Test main.reply_tweet"""
     tweet_id = 1527050399559057409
-    text = "Sample text"
+    text = "".join(random.choice(string.ascii_lowercase) for i in range(10))
     assert reply_tweet(tweet_id, text)

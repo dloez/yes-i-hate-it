@@ -9,6 +9,7 @@ from typing import List
 import pickle
 import os
 import re
+import time
 import random
 import tweepy
 import requests
@@ -114,7 +115,7 @@ def is_football(text: str) -> bool:
             word = word.replace(accent, no_accent)
 
         for key_word in KEY_WORDS:
-            ratio = fuzz.partial_ratio(word, key_word)
+            ratio = fuzz.ratio(word, key_word)
             if ratio > MIN_RATIO:
                 return True
     return False
@@ -154,6 +155,13 @@ def reply_tweet(tweet_id: int, text: str) -> bool:
 
 def main():
     """main function"""
+    user_name = 'Javieff16YT'
+    while True:
+        last_tweet = get_tweets(user_name=user_name, max_results=5)[0]
+        if is_new_tweet(last_tweet) and is_football(last_tweet.text):
+            vehicle_data = request_vehicle_data()
+            reply_tweet(tweet_id=last_tweet.id, text=vehicle_data)
+        time.sleep(5*60)
 
 
 if __name__ == '__main__':
