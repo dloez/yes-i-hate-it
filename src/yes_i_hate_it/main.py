@@ -11,6 +11,7 @@ import os
 import re
 import time
 import random
+import logging
 import tweepy
 import requests
 from thefuzz import fuzz
@@ -24,6 +25,7 @@ from yes_i_hate_it.config import OLD_TWEET_PATH
 from yes_i_hate_it.config import KEY_WORDS, MIN_RATIO
 from yes_i_hate_it.config import VEHICLE_REST_URL, VEHICLE_HEADER_TEMPLATE
 from yes_i_hate_it.config import TARGET_DATA, MAX_TWEET_CHARS
+from yes_i_hate_it.config import LOG_FILE, DISCORD_WEBHOOK
 
 
 def load_env():
@@ -153,16 +155,62 @@ def reply_tweet(tweet_id: int, text: str) -> bool:
     return True
 
 
+def post_discord(message: str):
+    """Post message to Discord Webhook"""
+    data = {'content': message}
+    requests.post(DISCORD_WEBHOOK, json=data)
+
+
+def log(level: str, text: str):
+    """Log to stdout, file and discord"""
+    level_map = {
+        'debug': logging.debug,
+        'info':  logging.info,
+        'error': logging.error
+    }
+
+    if level not in level_map:
+        return
+
+    level_map[level](text)
+    post_discord(text)
+
+
 def main():
     """main function"""
+    # configure logging
+    LOG_FILE.parents[0].mkdir(exist_ok=True)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(LOG_FILE),
+            logging.StreamHandler()
+        ]
+    )
+
     user_name = 'Javieff16YT'
+    log(INFO, f"Started, targeting {user_name}")
+
     while True:
+        logging.info("Getting new tweets...")
+
         last_tweet = get_tweets(user_name=user_name, max_results=5)[0]
-        if is_new_tweet(last_tweet) and is_football(last_tweet.text):
-            vehicle_data = request_vehicle_data()
-            reply_tweet(tweet_id=last_tweet.id, text=vehicle_data)
+        if is_new_tweet(last_tweet):
+            log(INFO, f"Found new tweet with ID {last_tweet.id}, evaluating...")
+            if is_football(last_tweet.text):
+                log(INFO, f"Tweet with ID {last_tweet.id} is football related, replying...")
+                vehicle_data = request_vehicle_data()
+                reply_tweet(tweet_id=last_tweet.id, text=vehicle_data)
+                log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{last_tweet.id}")
+            else:
+                log(INFO, f"Tweet with ID {last_tweet.id} is not football related")
         time.sleep(5*60)
 
+
+BUG = 'debug'
+INFO = 'info'
+ERROR = 'error'
 
 if __name__ == '__main__':
     main()
