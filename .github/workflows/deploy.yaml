@@ -1,0 +1,34 @@
+name: Run pylint, pytest and mypy
+environment: production
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+jobs:
+  call-test-workflow:
+    uses: ./.github/workflows/test.yaml
+  docker:
+    name: Publish - Docker Hub
+    runs-on: ubuntu-20.04
+    needs: [call-test-workflow]
+    env:
+      REPO: davidlopezsaez/yes-i-hate-it
+    steps:
+      - uses: actions/checkout@v1
+      - name: Login to Docker Hub
+        run: docker login -u '${{ secrets.DOCKER_USER }}'
+             -p '${{ secrets.DOCKER_PASS }}'
+      - name: Build Docker image
+        run: docker build -t $REPO:latest -t $REPO:${GITHUB_SHA::8} .
+      - name: Publish Docker image
+        run: docker push $REPO
+  redeploy:
+    name: Redeploy webhook call
+    runs-on: ubuntu-20.04
+    needs: [docker]
+    steps:
+      - name: Deploy docker container webhook
+        uses: joelwmale/webhook-action@master
+        env:
+          WEBHOOK_URL: '${{ secrets.DEPLOY_WEBHOOK_URL }}'
+          data: "{'redeploy': true}"

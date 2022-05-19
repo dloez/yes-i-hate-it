@@ -1,0 +1,10 @@
+version: "3.0"
+services:
+  yihi:
+    image: davidlopezsaez/yes-i-hate-it:latest
+    env_file:
+      - twitter.env
+    volumes:
+      - ./volumes/data:/usr/local/yes-i-hate-it/data
+      - ./volumes/logs:/usr/local/yes-i-hate-it/logs
+    restart: unless-stopped
