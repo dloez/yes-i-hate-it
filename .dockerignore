@@ -1,0 +1,14 @@
+.github
+.git
+.mypy_cache
+.pytest_cache
+.vscode
+data
+src/__pycache__
+src/yes_i_hate_it.egg-info
+tests
+.coverage
+.gitignore
+.pre-commit-config.yaml
+.pylintrc
+docker-compose.yaml
