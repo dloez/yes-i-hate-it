@@ -179,6 +179,8 @@ def log(level: str, text: str):
 def main():
     """main function"""
     # configure logging
+    # pylint: disable = no-member
+    # above rule is required to avoid pylint errors on python3.10
     LOG_FILE.parents[0].mkdir(exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
