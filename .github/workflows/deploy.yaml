@@ -37,7 +37,7 @@ jobs:
     name: Publish - Docker Hub
     environment: production
     runs-on: ubuntu-20.04
-    needs: [call-test-workflow]
+    needs: [test]
     env:
       REPO: davidlopezsaez/yes-i-hate-it
     steps:
