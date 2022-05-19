@@ -8,4 +8,4 @@ RUN pip install pipenv
 RUN pipenv install --system
 RUN pip install .
 
-CMD ['python', 'src/yes_i_hate_it/main.py']
+CMD ["python", "src/yes_i_hate_it/main.py"]

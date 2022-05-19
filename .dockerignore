@@ -11,4 +11,6 @@ tests
 .gitignore
 .pre-commit-config.yaml
 .pylintrc
-docker-compose.yaml
+docker-compose.yam
+volumes
+twitter.env
