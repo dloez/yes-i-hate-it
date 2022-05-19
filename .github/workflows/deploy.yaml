@@ -1,5 +1,4 @@
 name: Run pylint, pytest and mypy
-environment: production
 on:
   release:
     types: [published]
@@ -9,6 +8,7 @@ jobs:
     uses: ./.github/workflows/test.yaml
   docker:
     name: Publish - Docker Hub
+    environment: production
     runs-on: ubuntu-20.04
     needs: [call-test-workflow]
     env:
@@ -24,6 +24,7 @@ jobs:
         run: docker push $REPO
   redeploy:
     name: Redeploy webhook call
+    environment: production
     runs-on: ubuntu-20.04
     needs: [docker]
     steps:
