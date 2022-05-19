@@ -7,3 +7,4 @@ services:
     volumes:
       - ./volumes/data:/usr/local/yes-i-hate-it/data
       - ./volumes/logs:/usr/local/yes-i-hate-it/logs
+    restart: unless-stopped
