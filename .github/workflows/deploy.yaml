@@ -1,4 +1,4 @@
-name: Run pylint, pytest and mypy
+name: Test and deploy
 on:
   release:
     types: [published]
