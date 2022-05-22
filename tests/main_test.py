@@ -6,7 +6,8 @@ import tweepy
 
 from yes_i_hate_it.main import load_env
 from yes_i_hate_it.main import get_tweets
-from yes_i_hate_it.main import is_new_tweet
+from yes_i_hate_it.main import save_tweet_id
+from yes_i_hate_it.main import load_tweet_id
 from yes_i_hate_it.main import is_football
 from yes_i_hate_it.main import request_vehicle_data
 from yes_i_hate_it.main import reply_tweet
@@ -61,31 +62,35 @@ def test_get_tweets():
         get_tweets(user_name, 1)
 
 
-def test_is_new_test():
-    """Test main.is_new_test"""
-    max_results = 10
-    user_name = 'javieff16YT'
-    tweets = get_tweets(user_name, max_results)
+def test_save_tweet_id():
+    """Test main.write_tweet_id"""
+    tweet_id = 123123
+    assert save_tweet_id(tweet_id)
 
-    assert is_new_tweet(tweets[0])
-    assert not is_new_tweet(tweets[0])
+
+def test_load_tweet_id():
+    """Test main.load_tweet_id"""
+    assert not load_tweet_id()
+
+    tweet_id = 123123
+    save_tweet_id(tweet_id)
+    assert tweet_id == load_tweet_id()
 
 
 def test_is_football():
     """Test main.is_football"""
     test_phrases = (
-        "Me gusta el fúrbo, odio a los arbitros",
-        "muahhh lloroo, el madrid es una mierda muahhhh",
-        "frase aleatoria",
-        "Probablemente el futbol sea de las peores enfermedades del mundo",
-        "LA ATLETIMEDIANETA VUELVE MAMADÍSIMA!!!"
+        ("Me gusta el furbo, odio a los arbitros", True),
+        ("muahhh lloroo, el madrid es una mierda muahhhh", True),
+        ("frase aleatoria", False),
+        ("Probablemente el futbol sea de las peores enfermedades del mundo", True),
+        ("Internet es una fuente de informacion masiva", False),
+        ("LA ATLETIMEDIANETA VUELVE MAMADÍSIMA!!!", True)
     )
 
-    assert is_football(test_phrases[0])
-    assert is_football(test_phrases[1])
-    assert not is_football(test_phrases[2])
-    assert is_football(test_phrases[3])
-    assert is_football(test_phrases[4])
+    for phrase in test_phrases:
+        text, result = phrase
+        assert is_football(text) == result
 
 
 def test_request_vehicle_data():
