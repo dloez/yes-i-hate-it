@@ -51,7 +51,7 @@ def _init_tweepy():
     )
 
 
-def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
+def get_tweets(user_name: str, max_results: int, since_id: int = 0) -> List[tweepy.Tweet]:
     """Get 'x' amount of latests tweets from 'y' user"""
     # test max_result value
     if max_results < 5:
@@ -65,36 +65,36 @@ def get_tweets(user_name: str, max_results: int) -> List[tweepy.Tweet]:
     # get user from given user_name
     user = client.get_user(username=user_name)
 
+    # build args
+    kwargs = {'id': user.data['id'], 'max_results': max_results}
+    if since_id:
+        kwargs['since_id'] = since_id
+
     # get latest amount of tweets from user_name
-    tweets = client.get_users_tweets(id=user.data['id'], max_results=max_results)
-    return list(tweets.data)
+    tweets = client.get_users_tweets(**kwargs)
+    return tweets.data  # type: ignore
 
 
-def is_new_tweet(new_tweet: tweepy.Tweet) -> bool:
-    """
-    Detect if given tweet is the latest user tweet by comparing
-    given new_tweet with stored one.
-    If there is not a stored tweet, store new one and return True
-    """
-    # verify if there is an old tweet stored
+
+def save_tweet_id(tweet_id: int) -> bool:
+    """Save tweet into pickle file"""
+    # fix linter error on python 3.10
+    # pylint: disable = no-member
     if not OLD_TWEET_PATH.exists():
-        # pylint: disable=no-member
-        # above rule is required to avoid pylint errors on python3.10
         OLD_TWEET_PATH.parents[0].mkdir(exist_ok=True)
 
-        with open(OLD_TWEET_PATH, 'wb') as handle:
-            pickle.dump(new_tweet.id, handle, protocol=pickle.HIGHEST_PROTOCOL)
-        return True
+    with open(OLD_TWEET_PATH, 'wb') as handle:
+        pickle.dump(tweet_id, handle, protocol=pickle.HIGHEST_PROTOCOL)
+    return True
 
-    # load old tweet
+
+def load_tweet_id() -> int:
+    """Load tweet id from pickle file"""
+    if not OLD_TWEET_PATH.exists():
+        return 0
+
     with open(OLD_TWEET_PATH, 'rb') as handle:
-        old_tweet_id = pickle.load(handle)
-
-    if new_tweet.id != old_tweet_id:
-        with open(OLD_TWEET_PATH, 'wb') as handle:
-            pickle.dump(new_tweet.id, handle)
-        return True
-    return False
+        return int(pickle.load(handle))
 
 
 def is_football(text: str) -> bool:
@@ -192,21 +192,32 @@ def main():
     )
 
     user_name = 'Javieff16YT'
+    max_results = 5
     log(INFO, f"Started, targeting {user_name}")
+
+    # load last saved tweet
+    last_tweet_id = load_tweet_id()
+    if not last_tweet_id:
+        last_tweet_id = get_tweets(user_name=user_name, max_results=max_results)[0].id
+        save_tweet_id(last_tweet_id)
 
     while True:
         logging.info("Getting new tweets...")
 
-        last_tweet = get_tweets(user_name=user_name, max_results=5)[0]
-        if is_new_tweet(last_tweet):
-            log(INFO, f"Found new tweet with ID {last_tweet.id}, evaluating...")
-            if is_football(last_tweet.text):
-                log(INFO, f"Tweet with ID {last_tweet.id} is football related, replying...")
-                vehicle_data = request_vehicle_data()
-                reply_tweet(tweet_id=last_tweet.id, text=vehicle_data)
-                log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{last_tweet.id}")
-            else:
-                log(INFO, f"Tweet with ID {last_tweet.id} is not football related")
+        new_tweets = get_tweets(user_name=user_name, max_results=max_results, since_id=last_tweet_id)
+        if new_tweets:
+            for tweet in new_tweets:
+                # save each tweet when it is going to be processed
+                # to avoid lossing tweets if one of them crashes
+                save_tweet_id(tweet.id)
+                log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
+                if is_football(tweet.text):
+                    log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
+                    vehicle_data = request_vehicle_data()
+                    reply_tweet(tweet_id=tweet.id, text=vehicle_data)
+                    log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
+                else:
+                    log(INFO, f"Tweet with ID {tweet.id} is not football related")
         time.sleep(5*60)
 
 
