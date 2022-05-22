@@ -78,6 +78,8 @@ def get_tweets(user_name: str, max_results: int, since_id: int = 0) -> List[twee
 
 def save_tweet_id(tweet_id: int) -> bool:
     """Save tweet into pickle file"""
+    # fix linter error on python 3.10
+    # pylint: disable = no-member
     if not OLD_TWEET_PATH.exists():
         OLD_TWEET_PATH.parents[0].mkdir(exist_ok=True)
 
