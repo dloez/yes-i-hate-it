@@ -72,7 +72,7 @@ def get_tweets(user_name: str, max_results: int, since_id: int = 0) -> List[twee
 
     # get latest amount of tweets from user_name
     tweets = client.get_users_tweets(**kwargs)
-    return tweets.data  # type: ignore
+    return tweets.data[1:]  # type: ignore
 
 
 
