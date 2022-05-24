@@ -194,29 +194,27 @@ def main():
     max_results = 5
     log(INFO, f"Started, targeting {user_name}")
 
-    # load last saved tweet
-    last_tweet_id = load_tweet_id()
-    if not last_tweet_id:
-        last_tweet_id = get_tweets(user_name=user_name, max_results=max_results)[0].id
-        save_tweet_id(last_tweet_id)
-
     while True:
-        logging.info("Getting new tweets...")
+        # load last saved tweet
+        last_tweet_id = load_tweet_id()
+        if not last_tweet_id:
+            last_tweet_id = get_tweets(user_name=user_name, max_results=max_results)[0].id
+            save_tweet_id(last_tweet_id)
 
+        logging.info("Getting new tweets...")
         new_tweets = get_tweets(user_name=user_name, max_results=max_results, since_id=last_tweet_id)
-        if new_tweets:
-            for tweet in new_tweets:
-                # save each tweet when it is going to be processed
-                # to avoid lossing tweets if one of them crashes
-                save_tweet_id(tweet.id)
-                log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
-                if is_football(tweet.text):
-                    log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
-                    vehicle_data = request_vehicle_data()
-                    reply_tweet(tweet_id=tweet.id, text=vehicle_data)
-                    log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
-                else:
-                    log(INFO, f"Tweet with ID {tweet.id} is not football related")
+        for tweet in new_tweets:
+            # save each tweet when it is going to be processed
+            # to avoid lossing tweets if one of them crashes
+            save_tweet_id(tweet.id)
+            log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
+            if is_football(tweet.text):
+                log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
+                vehicle_data = request_vehicle_data()
+                reply_tweet(tweet_id=tweet.id, text=vehicle_data)
+                log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
+            else:
+                log(INFO, f"Tweet with ID {tweet.id} is not football related")
         time.sleep(5*60)
 
 
