@@ -26,6 +26,7 @@ from yes_i_hate_it.config import KEY_WORDS, MIN_RATIO
 from yes_i_hate_it.config import VEHICLE_REST_URL, VEHICLE_HEADER_TEMPLATE
 from yes_i_hate_it.config import TARGET_DATA, MAX_TWEET_CHARS
 from yes_i_hate_it.config import LOG_FILE, DISCORD_WEBHOOK
+from yes_i_hate_it.config import SLEEP_TIME_MINUTES
 
 
 def load_env():
@@ -194,19 +195,21 @@ def main():
     max_results = 5
     log(INFO, f"Started, targeting {user_name}")
 
-    while True:
-        # load last saved tweet
-        last_tweet_id = load_tweet_id()
-        if not last_tweet_id:
-            last_tweet_id = get_tweets(user_name=user_name, max_results=max_results)[0].id
-            save_tweet_id(last_tweet_id)
+    # load last saved tweet
+    last_tweet_id = load_tweet_id()
+    if not last_tweet_id:
+        last_tweet_id = get_tweets(user_name=user_name, max_results=max_results)[0].id
+        save_tweet_id(last_tweet_id)
 
+    while True:
         logging.info("Getting new tweets...")
         new_tweets = get_tweets(user_name=user_name, max_results=max_results, since_id=last_tweet_id)
-        for tweet in new_tweets:
+        for tweet in reversed(new_tweets):
             # save each tweet when it is going to be processed
             # to avoid lossing tweets if one of them crashes
             save_tweet_id(tweet.id)
+            last_tweet_id = tweet.id
+
             log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
             if is_football(tweet.text):
                 log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
@@ -215,7 +218,7 @@ def main():
                 log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
             else:
                 log(INFO, f"Tweet with ID {tweet.id} is not football related")
-        time.sleep(5*60)
+        time.sleep(SLEEP_TIME_MINUTES*60)
 
 
 BUG = 'debug'
