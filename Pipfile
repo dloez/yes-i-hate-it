@@ -15,9 +15,11 @@ mypy = "*"
 pytest-cov = "*"
 types-requests = "*"
 sqlalchemy = "*"
+discord = "*"
 
 [packages.thefuzz]
-extras = [ "speedup",]
+extras = ["speedup"]
+version = "*"
 
 [dev-packages.e1839a8]
 path = "."

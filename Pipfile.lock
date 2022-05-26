@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "b0714e4f9032e97680b469054c5e820eef966dac39be387a66b94b894cf70542"
+            "sha256": "58d9cbe4c6676f38f8edd596253e385fe644ffb7c0eaba937511ee5ef2aa679a"
         },
         "pipfile-spec": 6,
         "requires": {},
@@ -17,7 +17,8 @@
         "thefuzz": {
             "extras": [
                 "speedup"
-            ]
+            ],
+            "version": "*"
         }
     },
     "develop": {
