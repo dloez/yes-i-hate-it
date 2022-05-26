@@ -5,7 +5,6 @@ Main file which will handle:
     - if it is football related, fetch data from a random API
     - respond with the fetch data
 """
-from typing import List
 import pickle
 import os
 import re
@@ -52,7 +51,7 @@ def _init_tweepy():
     )
 
 
-def get_tweets(user_name: str, max_results: int, since_id: int = 0) -> List[tweepy.Tweet]:
+def get_tweets(user_name: str, max_results: int, since_id: int = 0, pagination: str = "") -> tweepy.Response:
     """Get 'x' amount of latests tweets from 'y' user"""
     # test max_result value
     if max_results < 5:
@@ -70,10 +69,12 @@ def get_tweets(user_name: str, max_results: int, since_id: int = 0) -> List[twee
     kwargs = {'id': user.data['id'], 'max_results': max_results}
     if since_id:
         kwargs['since_id'] = since_id
+    if pagination:
+        kwargs['pagination_token'] = pagination
 
     # get latest amount of tweets from user_name
     tweets = client.get_users_tweets(**kwargs)
-    return tweets.data or [] # type: ignore
+    return tweets
 
 
 def save_tweet_id(tweet_id: int) -> bool:
@@ -203,22 +204,23 @@ def main():
 
     while True:
         logging.info("Getting new tweets...")
-        new_tweets = get_tweets(user_name=user_name, max_results=max_results, since_id=last_tweet_id)
-        for tweet in reversed(new_tweets):
-            # save each tweet when it is going to be processed
-            # to avoid lossing tweets if one of them crashes
-            save_tweet_id(tweet.id)
-            last_tweet_id = tweet.id
+        new_tweets = get_tweets(user_name=user_name, max_results=max_results, since_id=last_tweet_id).data
+        if new_tweets:
+            for tweet in reversed(new_tweets):
+                # save each tweet when it is going to be processed
+                # to avoid lossing tweets if one of them crashes
+                save_tweet_id(tweet.id)
+                last_tweet_id = tweet.id
 
-            log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
-            if is_football(tweet.text):
-                log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
-                vehicle_data = request_vehicle_data()
-                reply_tweet(tweet_id=tweet.id, text=vehicle_data)
-                log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
-            else:
-                log(INFO, f"Tweet with ID {tweet.id} is not football related")
-        time.sleep(SLEEP_TIME_MINUTES*60)
+                log(INFO, f"Found new tweet with ID {tweet.id}, evaluating...")
+                if is_football(tweet.text):
+                    log(INFO, f"Tweet with ID {tweet.id} is football related, replying...")
+                    vehicle_data = request_vehicle_data()
+                    reply_tweet(tweet_id=tweet.id, text=vehicle_data)
+                    log(INFO, f"Replied to tweet URL: https://twitter.com/{user_name}/status/{tweet.id}")
+                else:
+                    log(INFO, f"Tweet with ID {tweet.id} is not football related")
+            time.sleep(SLEEP_TIME_MINUTES*60)
 
 
 BUG = 'debug'

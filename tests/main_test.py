@@ -44,7 +44,7 @@ def test_get_tweets():
     """Test main.get_tweets"""
     max_results = 10
     user_name = 'javieff16YT'
-    tweets = get_tweets(user_name, max_results)
+    tweets = get_tweets(user_name, max_results).data
 
     assert isinstance(tweets, list)
     assert len(tweets) == max_results
