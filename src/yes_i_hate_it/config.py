@@ -3,6 +3,9 @@ from pathlib import Path
 from sqlalchemy.orm import declarative_base
 
 
+# General
+DATA_PATH = Path('data')
+
 # Twitter tokens
 TWITTER_API_KEY = 'TWITTER_API_KEY'
 TWITTER_API_SECRET = 'TWITTER_API_SECRET'
@@ -11,7 +14,7 @@ TWITTER_ACCESS_SECRET = 'TWITTER_ACCESS_SECRET'
 TWITTER_BEARER_TOKEN = 'TWITTER_BEARER_TOKEN'
 
 # store latest tweet
-OLD_TWEET_PATH = Path('./data/old_tweet_id.pickle')
+OLD_TWEET_PATH = DATA_PATH / 'old_tweet_id.pickle'
 
 # deletection of football text
 KEY_WORDS = (
@@ -43,5 +46,11 @@ DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-
 SLEEP_TIME_MINUTES = 5
 
 # IA
-GATHER_TWEETS_FROM_USERS = ('Javieff16YT', 'MartitasArranz')
+GATHER_TWEETS_FROM_USERS = [
+    ('Javieff16YT', 2000),
+    ('JaviToledano_14', 1000),
+    ('neme2k', 2000),
+    ('elwandis', 2000)
+]
 BASE = declarative_base()
+TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'

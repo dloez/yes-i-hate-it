@@ -3,6 +3,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, String, Integer, Boolean
 from sqlalchemy import create_engine
 
+from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import GATHER_TWEETS_FROM_USERS
 from yes_i_hate_it.config import BASE
 
@@ -23,15 +24,29 @@ class User(BASE):
     """User base clase to interact with database"""
     __tablename__ = 'users'
 
-    user_id = Column(Integer, primary_key=True)
-    twitter_user_name = Column(String)
+    twitter_user_name = Column(String, primary_key=True)
+    tweets_amount = Column(Integer)
+
+
+def clean_users(users, db_session):
+    """Remove users from list which already are at the database"""
+    for user, amount in list(users):
+        db_user = db_session.query(User).get(user)
+        if db_user:
+            users.remove((user, amount))
+        else:
+            db_session.add(User(twitter_user_name=user, tweets_amount=amount))
+    db_session.commit()
+    return users
 
 
 def gather_tweets(users, db_session):
     """Gather tweets from users"""
-    for user in users:
+    for user, amount in users:
+        print(f"Getting {amount} tweets from {user}")
+
         pagination = ''
-        for _ in range(30):
+        for _ in range(0, amount, 100):
             tweets = get_tweets(
                 user_name=user,
                 max_results=100,
@@ -55,11 +70,14 @@ def gather_tweets(users, db_session):
 
 def main():
     """Main function"""
-    engine = create_engine('sqlite:///tweets.sqlite')
+    if not TWEETS_DB_PATH.parents[0].exists():
+        TWEETS_DB_PATH.parents[0].mkdir(exist_ok=True)
+
+    engine = create_engine(f'sqlite:///{str(TWEETS_DB_PATH)}')
     BASE.metadata.create_all(engine)
     session_maker = sessionmaker(bind=engine)
-
-    gather_tweets(users=GATHER_TWEETS_FROM_USERS, db_session=session_maker())
+    users = clean_users(GATHER_TWEETS_FROM_USERS, session_maker())
+    gather_tweets(users, session_maker())
 
 
 if __name__ == '__main__':
