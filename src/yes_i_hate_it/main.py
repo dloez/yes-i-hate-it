@@ -5,7 +5,6 @@ Main file which will handle:
     - if it is football related, fetch data from a random API
     - respond with the fetch data
 """
-from typing import List
 import pickle
 import os
 import re
@@ -52,7 +51,7 @@ def _init_tweepy():
     )
 
 
-def get_tweets(user_name: str, max_results: int, since_id: int = 0, pagination: str = "") -> List[tweepy.Tweet]:
+def get_tweets(user_name: str, max_results: int, since_id: int = 0, pagination: str = "") -> tweepy.Response:
     """Get 'x' amount of latests tweets from 'y' user"""
     # test max_result value
     if max_results < 5:
@@ -75,7 +74,7 @@ def get_tweets(user_name: str, max_results: int, since_id: int = 0, pagination: 
 
     # get latest amount of tweets from user_name
     tweets = client.get_users_tweets(**kwargs)
-    return tweets # type: ignore
+    return tweets
 
 
 def save_tweet_id(tweet_id: int) -> bool:
