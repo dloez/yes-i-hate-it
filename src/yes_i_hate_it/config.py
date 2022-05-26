@@ -1,5 +1,6 @@
 """Store project configuration"""
 from pathlib import Path
+from sqlalchemy.orm import declarative_base
 
 
 # Twitter tokens
@@ -40,3 +41,7 @@ LOG_FILE = Path('./logs/info.log')
 DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-a7keC3pTlUZ2ABDbz0dR9uY-ikI_q5UsJMV9wQDAUepNEIeu_TflGCzfxD8'
 
 SLEEP_TIME_MINUTES = 5
+
+# IA
+GATHER_TWEETS_FROM_USERS = ('Javieff16YT', 'MartitasArranz')
+BASE = declarative_base()

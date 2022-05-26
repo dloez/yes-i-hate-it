@@ -14,6 +14,7 @@ pylint = "*"
 mypy = "*"
 pytest-cov = "*"
 types-requests = "*"
+sqlalchemy = "*"
 
 [packages.thefuzz]
 extras = [ "speedup",]
