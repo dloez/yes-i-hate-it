@@ -18,8 +18,7 @@ sqlalchemy = "*"
 discord = "*"
 
 [packages.thefuzz]
-extras = ["speedup"]
-version = "*"
+extras = [ "speedup",]
 
 [dev-packages.e1839a8]
 path = "."
