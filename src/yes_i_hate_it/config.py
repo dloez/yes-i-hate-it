@@ -45,3 +45,7 @@ SLEEP_TIME_MINUTES = 5
 # IA
 GATHER_TWEETS_FROM_USERS = ('Javieff16YT', 'MartitasArranz')
 BASE = declarative_base()
+
+
+# Discord token
+DISCORD_TOKEN = 'DISCORD_TOKEN'

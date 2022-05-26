@@ -15,6 +15,7 @@ mypy = "*"
 pytest-cov = "*"
 types-requests = "*"
 sqlalchemy = "*"
+discord = "*"
 
 [packages.thefuzz]
 extras = [ "speedup",]
