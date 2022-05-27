@@ -19,3 +19,4 @@ sqlalchemy = "*"
 discord = "*"
 yes-i-hate-it = {editable = true, path = "."}
 nltk = "*"
+unidecode = "*"
