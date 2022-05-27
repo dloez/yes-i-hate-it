@@ -76,6 +76,7 @@ def gather_tweets(users, db_session):
 
 def main():
     """Main function"""
+    # pylint: disable = no-member
     GATHER_LOG_FILE.parents[0].mkdir(exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,

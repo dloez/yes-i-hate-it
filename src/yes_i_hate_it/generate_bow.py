@@ -83,6 +83,7 @@ def worker():
 
 def main():
     """Main function"""
+    # pylint: disable = no-member
     BOW_LOG_FILE.parents[0].mkdir(exist_ok=True)
     logging.basicConfig(
         level=logging.INFO,
