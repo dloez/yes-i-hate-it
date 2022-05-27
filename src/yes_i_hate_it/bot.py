@@ -15,24 +15,23 @@ from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.process_tweets import Tweet
 
 
-def load_tkn():
+def load_token():
     """Load discord token from environment variables"""
     return os.getenv(DISCORD_TOKEN)
 
 
-class MyBot(commands.Bot):
+class DiscordBot(commands.Bot):
     """Class of discord bot"""
     engine = create_engine(f'sqlite:///{str(TWEETS_DB_PATH)}')
     session_maker = sessionmaker(bind=engine)
 
     def __init__(self, command_prefix, self_bot):
-        """Constructor"""
         commands.Bot.__init__(self, command_prefix=command_prefix, self_bot=self_bot)
         self.add_commands()
 
     async def on_ready(self):
         """Execute when bot is succesfully connected"""
-        logging.info('%s has connected to Discord!', self.user.name)
+        logging.info("%s has connected to Discord!", self.user.name)
         guild = self.guilds[0].text_channels
         channels = []
         session = self.session_maker()
@@ -47,7 +46,7 @@ class MyBot(commands.Bot):
             msgs = await channel.history(limit=100).flatten()
             if not msgs:
                 continue
-            logging.info('found msgs in lobby-%s', name[1])
+            logging.info("found msgs in lobby-%s", name[1])
             for msg in msgs:
                 splitted_msg = msg.content.split()
                 tweet = session.query(Tweet).get(int(splitted_msg[1]))
@@ -61,7 +60,7 @@ class MyBot(commands.Bot):
 
 
     def add_commands(self):
-        """add commands to bot"""
+        """Add commands to bot"""
         def read_10():
             """Read 10 tweets from data base"""
             logging.info("giving 10 new tweets")
@@ -76,7 +75,7 @@ class MyBot(commands.Bot):
             session.commit()
             return messages
 
-        @self.command(name="list", pass_context=True)
+        @self.command(name='list', pass_context=True)
         async def list_tweets(ctx):
             """Start sending data"""
             logging.info("%s requested list", ctx.author.name)
@@ -88,7 +87,7 @@ class MyBot(commands.Bot):
                 await msg_to_send.add_reaction('✅')
                 await msg_to_send.add_reaction('❌')
 
-        @self.command(name="addme", pass_context=True)
+        @self.command(name='addme', pass_context=True)
         async def add_me(ctx):
             """Create channel for user and check it is not already created"""
             logging.info("%s rquested add me", ctx.author.name)
@@ -122,7 +121,7 @@ class MyBot(commands.Bot):
 
             session.commit()
 
-        @self.command(name="c", pass_context=True)
+        @self.command(name='c', pass_context=True)
         async def confirm(ctx):
             """Delete all messages in users channel"""
             logging.info("%s request confirmation", ctx.auto.name)
@@ -133,7 +132,7 @@ class MyBot(commands.Bot):
                 await ctx.channel.purge()
             await list_tweets(ctx)
 
-        @self.command(name="clean", pass_context=True)
+        @self.command(name='clean', pass_context=True)
         async def clean(ctx):
             """Delete all messages in users channel"""
             await ctx.channel.purge()
@@ -141,8 +140,8 @@ class MyBot(commands.Bot):
 
 def main():
     """Main function"""
-    discord_bot = MyBot(command_prefix=">", self_bot=False)
-    discord_bot.run(load_tkn())
+    discord_bot = DiscordBot(command_prefix='>', self_bot=False)
+    discord_bot.run(load_token())
 
 
 if __name__ == '__main__':
