@@ -54,6 +54,7 @@ GATHER_TWEETS_FROM_USERS = [
 ]
 BASE = declarative_base()
 TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'
+PROCESS_NUMBER = 4
 
 # Discord token
 DISCORD_TOKEN = 'DISCORD_TOKEN'
