@@ -1,0 +1,10 @@
+version: "3.0"
+services:
+  yihi:
+    image: inigo183/discord_bot:latest
+    env_file:
+      - bot.env
+    volumes:
+      - ./volumes/data:/usr/local/yes-i-hate-it/data
+      - ./volumes/logs:/usr/local/yes-i-hate-it/logs
+    restart: unless-stopped

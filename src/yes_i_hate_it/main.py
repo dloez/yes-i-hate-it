@@ -29,7 +29,7 @@ from yes_i_hate_it.config import SLEEP_TIME_MINUTES
 
 
 def load_env():
-    """Load twitter tokens from environment variabless"""
+    """Load twitter tokens from environment variables"""
     tokens = {
         TWITTER_API_KEY: os.getenv(TWITTER_API_KEY),
         TWITTER_API_SECRET: os.getenv(TWITTER_API_SECRET),

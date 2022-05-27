@@ -18,6 +18,8 @@ class Tweet(BASE):
     tweet_id = Column(Integer, primary_key=True)
     text = Column(String)
     requested = Column(Boolean, default=False)
+    is_football = Column(Boolean, default=False)
+    processed = Column(Boolean, default=False)
 
 
 class User(BASE):
@@ -73,7 +75,7 @@ def main():
     if not TWEETS_DB_PATH.parents[0].exists():
         TWEETS_DB_PATH.parents[0].mkdir(exist_ok=True)
 
-    engine = create_engine(f'sqlite:///{str(TWEETS_DB_PATH)}')
+    engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     BASE.metadata.create_all(engine)
     session_maker = sessionmaker(bind=engine)
     users = clean_users(GATHER_TWEETS_FROM_USERS, session_maker())
