@@ -14,7 +14,8 @@ from yes_i_hate_it.config import DISCORD_TOKEN, CATEGORY_ID, DISCORD_LOG_FILE
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.process_tweets import Tweet
 
-def load_tkn() -> str:
+
+def load_tkn():
     """Load discord token from environment variables"""
     return os.getenv(DISCORD_TOKEN)
 
