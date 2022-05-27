@@ -18,6 +18,7 @@ class Tweet(BASE):
     tweet_id = Column(Integer, primary_key=True)
     text = Column(String)
     requested = Column(Boolean, default=False)
+    is_football = Column(Boolean, default=False)
 
 
 class User(BASE):

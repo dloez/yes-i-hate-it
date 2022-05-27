@@ -54,3 +54,10 @@ GATHER_TWEETS_FROM_USERS = [
 ]
 BASE = declarative_base()
 TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'
+
+# Discord token
+DISCORD_TOKEN = 'DISCORD_TOKEN'
+CATEGORY_ID = 979508900342685696
+# CATEGORY_ID = 979112708530139200
+
+DISCORD_LOG_FILE = Path('./logs/discord_bot.log')
