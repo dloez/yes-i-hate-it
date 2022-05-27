@@ -1,4 +1,5 @@
 """Download, store tweets and generate keyword from tweets"""
+import logging
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Column, String, Integer, Boolean
 from sqlalchemy import create_engine
@@ -6,6 +7,7 @@ from sqlalchemy import create_engine
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import GATHER_TWEETS_FROM_USERS
 from yes_i_hate_it.config import BASE
+from yes_i_hate_it.config import GATHER_LOG_FILE
 
 from yes_i_hate_it.main import get_tweets
 
@@ -30,36 +32,34 @@ class User(BASE):
     tweets_amount = Column(Integer)
 
 
-def clean_users(users, db_session):
+def check_user(user, amount, db_session):
     """Remove users from list which already are at the database"""
-    for user, amount in list(users):
-        db_user = db_session.query(User).get(user)
-        if db_user:
-            users.remove((user, amount))
-        else:
-            db_session.add(User(twitter_user_name=user, tweets_amount=amount))
+    db_user = db_session.query(User).get(user)
+    if db_user:
+        return True
+
+    db_session.add(User(twitter_user_name=user, tweets_amount=amount))
     db_session.commit()
-    return users
+    return False
 
 
 def gather_tweets(users, db_session):
     """Gather tweets from users"""
     for user, amount in users:
-        print(f"Getting {amount} tweets from {user}")
+        if check_user(user, amount, db_session):
+            logging.info("User %s was already requested, skipping...", user)
+            continue
 
+        logging.info("Getting %s tweets from %s", amount, user)
         pagination = ''
         for _ in range(0, amount, 100):
-            tweets = get_tweets(
+            twitter_data = get_tweets(
                 user_name=user,
                 max_results=100,
                 pagination=pagination
             )
 
-            pagination = tweets.meta['next_token']
-            tweets = tweets.data or []
-            if not tweets:
-                break
-
+            tweets = twitter_data.data or []
             tweet_storage = []
             for tweet in tweets:
                 tweet_storage.append(Tweet(
@@ -69,17 +69,30 @@ def gather_tweets(users, db_session):
             db_session.add_all(tweet_storage)
             db_session.commit()
 
+            if 'next_token' not in twitter_data.meta:
+                break
+            pagination = twitter_data.meta['next_token']
+
 
 def main():
     """Main function"""
+    GATHER_LOG_FILE.parents[0].mkdir(exist_ok=True)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(GATHER_LOG_FILE),
+            logging.StreamHandler()
+        ]
+    )
+
     if not TWEETS_DB_PATH.parents[0].exists():
         TWEETS_DB_PATH.parents[0].mkdir(exist_ok=True)
 
     engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     BASE.metadata.create_all(engine)
     session_maker = sessionmaker(bind=engine)
-    users = clean_users(GATHER_TWEETS_FROM_USERS, session_maker())
-    gather_tweets(users, session_maker())
+    gather_tweets(GATHER_TWEETS_FROM_USERS, session_maker())
 
 
 if __name__ == '__main__':

@@ -1,5 +1,6 @@
 """Process tweets and generate bag of worlds"""
 import re
+import logging
 from multiprocessing import Process
 import nltk
 from unidecode import unidecode
@@ -14,6 +15,7 @@ from yes_i_hate_it.gather_tweets import Tweet
 from yes_i_hate_it.config import PROCESS_NUMBER
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import BASE
+from yes_i_hate_it.config import BOW_LOG_FILE
 
 
 # pylint: disable = too-few-public-methods
@@ -59,7 +61,7 @@ def store_bow(session, words):
         try:
             session.commit()
         except IntegrityError:
-            print(f'Repeated word: {word}')
+            logging.info("%s repeated, skipping...", word)
             session.rollback()
 
 
@@ -73,6 +75,7 @@ def worker():
     while tweets:
         small_bow = []
         for tweet in tweets:
+            logging.info("Processing tweet with ID: %s", tweet.tweet_id)
             small_bow.extend(process_text(tweet.text))
         store_bow(session, small_bow)
         tweets = get_tweets(session, 10)
@@ -80,6 +83,16 @@ def worker():
 
 def main():
     """Main function"""
+    BOW_LOG_FILE.parents[0].mkdir(exist_ok=True)
+    logging.basicConfig(
+        level=logging.INFO,
+        format="%(asctime)s - %(levelname)s - %(message)s",
+        handlers=[
+            logging.FileHandler(BOW_LOG_FILE),
+            logging.StreamHandler()
+        ]
+    )
+
     engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     BASE.metadata.create_all(engine)
 

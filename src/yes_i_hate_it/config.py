@@ -40,25 +40,27 @@ MAX_TWEET_CHARS = 280
 
 # logging
 # pylint: disable = line-too-long
-LOG_FILE = Path('./logs/info.log')
-DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-a7keC3pTlUZ2ABDbz0dR9uY-ikI_q5UsJMV9wQDAUepNEIeu_TflGCzfxD8'
+LOG_FILE = Path('./logs/main.log')
+DISCORD_LOG_FILE = Path('./logs/discord_bot.log')
+GATHER_LOG_FILE = Path('./logs/gather.log')
+BOW_LOG_FILE = Path('./logs/bow.log')
 
 SLEEP_TIME_MINUTES = 5
 
 # IA
 GATHER_TWEETS_FROM_USERS = [
     ('Javieff16YT', 2000),
-    ('JaviToledano_14', 1000),
+    ('adrian_lomar', 2000),
     ('neme2k', 2000),
-    ('elwandis', 2000)
+    ('elwandis', 2000),
+    ('AtletiMediaLive', 2000)
 ]
 BASE = declarative_base()
 TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'
 PROCESS_NUMBER = 4
 
-# Discord token
+# discord
+DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-a7keC3pTlUZ2ABDbz0dR9uY-ikI_q5UsJMV9wQDAUepNEIeu_TflGCzfxD8'
 DISCORD_TOKEN = 'DISCORD_TOKEN'
 CATEGORY_ID = 979508900342685696
 # CATEGORY_ID = 979112708530139200
-
-DISCORD_LOG_FILE = Path('./logs/discord_bot.log')
