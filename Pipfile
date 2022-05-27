@@ -1,11 +1,12 @@
 [[source]]
-url = "https://pypi.python.org/simple"
+url = "https://pypi.org/simple"
 verify_ssl = true
 name = "pypi"
 
 [packages]
 tweepy = "*"
 requests = "*"
+thefuzz = {extras = ["speedup"], version = "*"}
 
 [dev-packages]
 pytest = "*"
@@ -16,10 +17,6 @@ pytest-cov = "*"
 types-requests = "*"
 sqlalchemy = "*"
 discord = "*"
-
-[packages.thefuzz]
-extras = [ "speedup",]
-
-[dev-packages.e1839a8]
-path = "."
-editable = true
+yes-i-hate-it = {editable = true, path = "."}
+nltk = "*"
+unidecode = "*"

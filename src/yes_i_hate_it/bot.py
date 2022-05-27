@@ -12,7 +12,7 @@ from sqlalchemy import create_engine
 
 from yes_i_hate_it.config import DISCORD_TOKEN, CATEGORY_ID, DISCORD_LOG_FILE
 from yes_i_hate_it.config import TWEETS_DB_PATH
-from yes_i_hate_it.process_tweets import Tweet
+from yes_i_hate_it.gather_tweets import Tweet
 
 
 def load_token():
