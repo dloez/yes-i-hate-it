@@ -46,8 +46,9 @@ class DiscordBot(commands.Bot):
             msgs = await channel.history(limit=100).flatten()
             if not msgs:
                 continue
+            messages = [msg for msg in msgs if '>' != msg.content[0]]
             logging.info("found msgs in lobby-%s", name[1])
-            for msg in msgs:
+            for msg in messages:
                 splitted_msg = msg.content.split()
                 tweet = session.query(Tweet).get(int(splitted_msg[1]))
                 tweet.requested = False
@@ -125,7 +126,7 @@ class DiscordBot(commands.Bot):
         @self.command(name='c', pass_context=True)
         async def confirm(ctx):
             """Delete all messages in users channel"""
-            logging.info("%s request confirmation", ctx.auto.name)
+            logging.info("%s request confirmation", ctx.author.name)
             messages = await ctx.channel.history(limit=100).flatten()
             messages = [msg for msg in messages if '>' != msg.content[0]]
             if correct(messages):
