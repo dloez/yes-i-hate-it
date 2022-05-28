@@ -116,9 +116,10 @@ class DiscordBot(commands.Bot):
                 tweet = session.query(Tweet).get(int(splitted_msg[1]))
                 if str(msg.reactions[0].emoji) == ('✅') and msg.reactions[0].count == 2:
                     tweet.is_football = True
-                    session.add(tweet)
                     logging.info("clasified %i as football", tweet.tweet_id)
 
+                tweet.labeled = True
+                session.add(tweet)
             session.commit()
 
         @self.command(name='c', pass_context=True)

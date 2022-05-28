@@ -22,6 +22,7 @@ class Tweet(BASE):
     requested = Column(Boolean, default=False)
     is_football = Column(Boolean, default=False)
     processed = Column(Boolean, default=False)
+    labeled = Column(Boolean, default=False)
 
 
 class User(BASE):
