@@ -1,6 +1,6 @@
 version: "3.0"
 services:
-  yihi:
+  yihi_bot:
     image: inigo183/discord_bot:latest
     env_file:
       - bot.env

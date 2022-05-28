@@ -53,7 +53,8 @@ GATHER_TWEETS_FROM_USERS = [
     ('adrian_lomar', 2000),
     ('neme2k', 2000),
     ('elwandis', 2000),
-    ('AtletiMediaLive', 2000)
+    ('AtletiMediaLive', 2000),
+    ('MartitasArranz', 2000)
 ]
 BASE = declarative_base()
 TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'
