@@ -3,6 +3,7 @@
 import sys
 import logging
 import numpy as np
+import numpy.typing as npt
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 
@@ -67,11 +68,11 @@ def generate_dataset():
     total_tweets = len(tweets)
     total_words = session.query(Word).count()
 
-    data_x = np.ndarray(shape=(total_tweets, total_words), dtype=np.uint8)
-    data_y = np.ndarray(shape=(total_tweets, 2), dtype=np.uint8)
+    data_x: npt.NDArray[np.uint8] = np.ndarray(shape=(total_tweets, total_words), dtype=np.uint8)
+    data_y: npt.NDArray[np.uint8] = np.ndarray(shape=(total_tweets, 2), dtype=np.uint8)
 
     for i, tweet in enumerate(tweets):
-        data_x[i] = from_text_to_array(session, tweet.text)
+        data_x[i] = from_text_to_array(session, tweet.text) #
         data_y[i] = from_label_to_array(tweet.is_football)
 
     # used to calculate slices across train (80%) and test (20%) arrays
