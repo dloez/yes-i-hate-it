@@ -132,7 +132,7 @@ class DiscordBot(commands.Bot):
             if correct(messages):
                 clasify_data(messages)
                 await ctx.channel.purge()
-            await list_tweets(ctx)
+                await list_tweets(ctx)
 
         @self.command(name='clean', pass_context=True)
         async def clean(ctx):

@@ -891,6 +891,7 @@
             "index": "pypi",
             "version": "==1.22.4"
         },
+<<<<<<< HEAD
         "oauthlib": {
             "hashes": [
                 "sha256:23a8208d75b902797ea29fd31fa80a15ed9dc2c6c16fe73f5d346f83f6fa27a2",
@@ -907,6 +908,8 @@
             "markers": "python_version >= '3.5'",
             "version": "==3.3.0"
         },
+=======
+>>>>>>> main
         "packaging": {
             "hashes": [
                 "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb",
