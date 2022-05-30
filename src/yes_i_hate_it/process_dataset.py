@@ -26,6 +26,8 @@ def from_text_to_array(session, text):
     processed_words = process_text(text)
     for word in processed_words:
         db_word = session.query(Word).filter(Word.text==word).first()
+        if not db_word:
+            continue
         data[db_word.id-1] = 1
     return data
 
@@ -77,6 +79,11 @@ def generate_dataset():
 
     # used to calculate slices across train (80%) and test (20%) arrays
     train_threshold = int(total_tweets * TRAIN_PERCENTAGE / 100)
+
+    # shuffle array
+    np.random.shuffle(data_x)
+    np.random.shuffle(data_y)
+
     np.savez(DATASET_FILE_PATH,
         train_x=data_x[:train_threshold],
         train_y=data_y[:train_threshold],
