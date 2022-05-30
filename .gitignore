@@ -9,3 +9,5 @@ logs
 build
 *.pickle
 *.log
+tweets.sqlite
+dataset.npz
