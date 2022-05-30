@@ -14,9 +14,8 @@ from yes_i_hate_it.process_dataset import load_dataset, from_text_to_array
 def create_model(total_words):
     """Create network model"""
     inputs = tf.keras.layers.Input(shape=(total_words,))
-    hidden1 = tf.keras.layers.Dense(200, activation=tf.nn.relu)(inputs)
-    hidden2 = tf.keras.layers.Dropout(rate=0.3)(hidden1)
-    hiddenf = tf.keras.layers.Dense(200, activation=tf.nn.relu)(hidden2)
+    hidden1 = tf.keras.layers.Dense(100, activation=tf.nn.relu)(inputs)
+    hiddenf = tf.keras.layers.Dense(100, activation=tf.nn.relu)(hidden1)
     outputs = tf.keras.layers.Dense(2, activation=tf.nn.relu)(hiddenf)
     model = tf.keras.Model(inputs=inputs, outputs=outputs)
 
@@ -34,10 +33,10 @@ def create_model(total_words):
 
 def plot_history(history):
     """Plot train history in figure"""
-    N = np.arange(0, EPOCHS)
+    np_range = np.arange(0, EPOCHS)
     plt.figure()
-    plt.plot(N, history.history["loss"], label="train_loss")
-    plt.plot(N, history.history["val_loss"], label="val_loss")
+    plt.plot(np_range, history.history["loss"], label="train_loss")
+    plt.plot(np_range, history.history["val_loss"], label="val_loss")
     plt.title("Trainning Loss and Accuracy")
     plt.xlabel("Epoch #")
     plt.ylabel("Loss/Accuracy")
@@ -64,21 +63,18 @@ def main():
     history = model.fit(
         train_data, train_labels,
         validation_split=0.15,
-        steps_per_epoch=len(train_data),
-        epochs=EPOCHS,
+        epochs=10000,
+        shuffle=True
     )
 
     # model = load_model()
 
     test = model.evaluate(test_data, test_label)
-
     print(test)
-
-    # plot_history(history)
-
+    plot_history(history)
     model.save(MODEL_FILE_PATH)
 
-    text = from_text_to_array(session, "vamos")
+    text = from_text_to_array(session, "el atletico es lo mejor")
     prediction = model.predict(np.array([text]))
     print(f'{results[0]}: {prediction[0][0]}')
     print(f'{results[1]}: {prediction[0][1]}')
