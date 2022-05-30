@@ -47,7 +47,6 @@ def test_get_tweets():
     tweets = get_tweets(user_name, max_results).data
 
     assert isinstance(tweets, list)
-    assert len(tweets) == max_results
 
     assert isinstance(tweets[0], tweepy.tweet.Tweet)
     assert 'text' in tweets[0]
