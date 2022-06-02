@@ -1,5 +1,5 @@
 """Utilities to generate and load dataset"""
-# pylint: disable = import-outside-toplevel
+# pylint:disable = import-outside-toplevel
 import sys
 import logging
 import numpy as np
@@ -106,7 +106,8 @@ def main():
     and the imported as other scripts to load the dataset, therefore
     main function will onyl call generate_dataset.
     """
-    generate_dataset()
+    # generate_dataset()
+    process_PCA()
 
 
 if __name__ == '__main__':

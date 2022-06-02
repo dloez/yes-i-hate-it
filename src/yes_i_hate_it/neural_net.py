@@ -5,6 +5,11 @@ import tensorflow as tf
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
 from yes_i_hate_it.generate_bow import Word
+from numpy import unique
+from numpy import where
+from sklearn.datasets import make_classification
+from sklearn.mixture import GaussianMixture
+from matplotlib import pyplot
 
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import FIGURE_FILE_PATH, MODEL_FILE_PATH, EPOCHS
@@ -80,5 +85,33 @@ def main():
     print(f'{results[1]}: {prediction[0][1]}')
 
 
+
+# gaussian mixture clustering
+# define dataset
+def unsupervised():
+    # X, _ = make_classification(n_samples=1000, n_features=2, n_informative=2, n_redundant=0, n_clusters_per_class=1, random_state=4)
+    # define the model
+    (train_data, _), (_, _) = load_dataset()
+    print("model")
+    model = GaussianMixture(n_components=2)
+    # fit the model
+    print("fit")
+    model.fit(train_data)
+    # assign a cluster to each example
+    print("predict")
+    yhat = model.predict(train_data)
+    # retrieve unique clusters
+    clusters = unique(yhat)
+    print(yhat)
+    # create scatter plot for samples from each cluster
+    # for cluster in clusters:
+    #     # get row indexes for samples with this cluster
+    #     row_ix = where(yhat == cluster)
+    #     # create scatter of these samples
+    #     pyplot.scatter(X[row_ix, 0], X[row_ix, 1])
+    # show the plot
+    # pyplot.show()
+
 if __name__ == '__main__':
-    main()
+    # main()
+    unsupervised()
