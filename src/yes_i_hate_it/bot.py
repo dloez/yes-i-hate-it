@@ -105,6 +105,7 @@ class DiscordBot(commands.Bot):
             """Check if all messages are correctly labeled"""
             corr = True
             for msg in msgs:
+                # pylint: disable=consider-using-generator
                 corr = corr and (sum([react.count for react in msg.reactions]) == 3)
             logging.info("messages checked as %s", str(corr))
             return corr

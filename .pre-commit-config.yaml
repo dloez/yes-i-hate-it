@@ -9,7 +9,7 @@ repos:
   - repo: local
     hooks:
     - id: pylint
-      args: [src tests]
+      args: [src]
       name: pylint
       entry: pylint
       language: system

@@ -60,7 +60,6 @@ GATHER_TWEETS_FROM_USERS = [
 ]
 BASE = declarative_base()
 TWEETS_DB_PATH = DATA_PATH / 'tweets.sqlite'
-PROCESS_NUMBER = 4
 
 # discord
 DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-a7keC3pTlUZ2ABDbz0dR9uY-ikI_q5UsJMV9wQDAUepNEIeu_TflGCzfxD8'
