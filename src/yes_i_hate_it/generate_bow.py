@@ -1,8 +1,8 @@
 """Process tweets and generate bag of worlds"""
 import re
 import logging
-from multiprocessing import Process
 import nltk
+import stanza
 from unidecode import unidecode
 from nltk.corpus import stopwords
 from sqlalchemy.orm import sessionmaker
@@ -12,7 +12,6 @@ from sqlalchemy.exc import IntegrityError
 
 from yes_i_hate_it.gather_tweets import Tweet
 
-from yes_i_hate_it.config import PROCESS_NUMBER
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import BASE
 from yes_i_hate_it.config import BOW_LOG_FILE
@@ -46,10 +45,19 @@ def process_text(text):
     text = text.lower() # lowercase text
     text = re.sub(r'\d+', '', text) # remove numbers
     text = re.sub(r'[^\w\s]', ' ', text) # remove non char/spaces
+    text = text.replace('_', '') # remove _
 
-    # remove stop words and trailing white spaces
+    # words that have no meanings
     stop_words = [*stopwords.words('spanish'), *stopwords.words('english')]
-    return [word.strip() for word in text.split() if word not in stop_words]
+
+    doc = nlp(text)
+    words = []
+    for sentence in doc.sentences:
+        for word_data in sentence.words:
+            lemma = word_data.lemma
+            if lemma not in stop_words:
+                words.append(unidecode(lemma))
+    return words
 
 
 def store_bow(session, words):
@@ -65,19 +73,24 @@ def store_bow(session, words):
             session.rollback()
 
 
-def worker():
+def delete_words():
+    """Delete words table to re-generate bow"""
+    engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
+    Word.__table__.drop(engine)
+
+
+def executor():
     """Get and process tweets and generates bow"""
     engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     session_maker = sessionmaker(bind=engine)
     session = session_maker()
 
     tweets = get_tweets(session, 10)
+    processed_tweets = []
     while tweets:
-        small_bow = []
         for tweet in tweets:
             logging.info("Processing tweet with ID: %s", tweet.tweet_id)
-            small_bow.extend(process_text(tweet.text))
-        store_bow(session, small_bow)
+            processed_tweets.append(process_text(tweet.text))
         tweets = get_tweets(session, 10)
 
 
@@ -96,20 +109,12 @@ def main():
 
     engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     BASE.metadata.create_all(engine)
-
-    processes = []
-    for _ in range(PROCESS_NUMBER):
-        processes.append(Process(target=worker))
-
-    for process in processes:
-        process.start()
-
-    for process in processes:
-        process.join()
+    executor()
 
 
 # download stopwords
 nltk.download('stopwords')
+nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
 
 if __name__ == '__main__':
     main()

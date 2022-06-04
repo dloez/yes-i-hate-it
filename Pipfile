@@ -21,3 +21,4 @@ yes-i-hate-it = {editable = true, path = "."}
 nltk = "*"
 unidecode = "*"
 numpy = "*"
+stanza = "*"
