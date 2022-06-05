@@ -3,6 +3,8 @@ import re
 import logging
 import nltk
 import stanza
+import collections
+from gensim.models import Word2Vec
 from unidecode import unidecode
 from nltk.corpus import stopwords
 from sqlalchemy.orm import sessionmaker
@@ -15,15 +17,6 @@ from yes_i_hate_it.gather_tweets import Tweet
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import BASE
 from yes_i_hate_it.config import BOW_LOG_FILE
-
-
-# pylint: disable = too-few-public-methods
-class Word(BASE):
-    """Word database ORM"""
-    __tablename__ = 'words'
-
-    id = Column(Integer, primary_key=True)
-    text = Column(String, unique=True)
 
 
 def get_tweets(session, amount):
@@ -60,38 +53,66 @@ def process_text(text):
     return words
 
 
-def store_bow(session, words):
-    """Store words on database"""
-    for word in set(words):
-        new_word = Word(text=word)
-        session.add(new_word)
+def generate_chunks(sentences, keyed_vectors):
+    """Generate group of words called 'chunks'"""
+    chunks = {}
+    new_chunk = 0
+    for i in range(EPOCHS):
+        logging.info('Epoch %s', i)
+        for sentence in sentences:
+            for word in sentence:
+                if not chunks:
+                    key = f'chunk_{new_chunk}'
+                    chunks[key] = []
+                    chunks[key].append(word)
+                    new_chunk += 1
+                    continue
+                
+                found_in = find_word(word, chunks)
+                if found_in:
+                    chunks[found_in].remove(word)
+                    if not chunks[found_in]:
+                        chunks.pop(found_in)
+                
+                best_similarity = 0
+                best_chunk = ''
+                for key, words in chunks.items():
+                    similarity = get_chunk_similarity(keyed_vectors, words, word)
 
-        try:
-            session.commit()
-        except IntegrityError:
-            logging.info("%s repeated, skipping...", word)
-            session.rollback()
+                    if not best_similarity:
+                        best_similarity = similarity
+                        best_chunk = key
+                        continue
+
+                    if similarity > best_similarity:
+                        best_similarity = similarity
+                        best_chunk = key
+
+                if best_similarity >= MIN_SIMILARITY:
+                    if word not in chunks[best_chunk]:
+                        chunks[best_chunk].append(word)
+                else:
+                    key = f'chunk_{new_chunk}'
+                    chunks[key] = []
+                    chunks[key].append(word)
+                    new_chunk += 1
+    print(chunks)
+    print(len(chunks))
 
 
-def delete_words():
-    """Delete words table to re-generate bow"""
-    engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
-    Word.__table__.drop(engine)
+def get_chunk_similarity(keyed_vectors, chunk, word):
+    """Return average similary between words """
+    similarity = 0
+    for chunk_word in chunk:
+        similarity += keyed_vectors.similarity(word, chunk_word)
+    return similarity / len(chunk)
 
 
-def executor():
-    """Get and process tweets and generates bow"""
-    engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
-    session_maker = sessionmaker(bind=engine)
-    session = session_maker()
-
-    tweets = get_tweets(session, 10)
-    processed_tweets = []
-    while tweets:
-        for tweet in tweets:
-            logging.info("Processing tweet with ID: %s", tweet.tweet_id)
-            processed_tweets.append(process_text(tweet.text))
-        tweets = get_tweets(session, 10)
+def find_word(word, chunks):
+    """Find word across all chunks and if found return chunk key"""
+    for key, words in chunks.items():
+        if word in words:
+            return key
 
 
 def main():
@@ -109,12 +130,31 @@ def main():
 
     engine = create_engine(f'sqlite:///{TWEETS_DB_PATH}')
     BASE.metadata.create_all(engine)
-    executor()
+    session_maker = sessionmaker(bind=engine)
+    session = session_maker()
+
+    tweets = get_tweets(session, 10)
+    processed_tweets = []
+    while tweets:
+        for tweet in tweets:
+            logging.info("Processing tweet with ID: %s", tweet.tweet_id)
+            processed_tweets.append(process_text(tweet.text))
+        tweets = get_tweets(session, 10)
+    
+    model =  Word2Vec(min_count=1, epochs=1, vector_size=100)
+    model.build_vocab(processed_tweets)
+
+    keyed_vectors = model.wv
+    del model
+    generate_chunks(processed_tweets, keyed_vectors)
 
 
 # download stopwords
 nltk.download('stopwords')
 nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
+
+EPOCHS = 50
+MIN_SIMILARITY = 0.3
 
 if __name__ == '__main__':
     main()
