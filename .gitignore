@@ -11,3 +11,5 @@ build
 *.log
 tweets.sqlite
 dataset.npz
+word2vec.model
+word2vec.wordvectors

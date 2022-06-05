@@ -44,7 +44,7 @@ LOGS_PATH = Path('logs')
 LOG_FILE = LOGS_PATH / 'main.log'
 DISCORD_LOG_FILE = LOGS_PATH / 'discord_bot.log'
 GATHER_LOG_FILE = LOGS_PATH / 'gather.log'
-BOW_LOG_FILE = LOGS_PATH / 'bow.log'
+CLUSTER_LOG_FILE = LOGS_PATH / 'cluster.log'
 DATASET_LOG_FILE = LOGS_PATH / 'dataset.log'
 
 SLEEP_TIME_MINUTES = 5
@@ -66,6 +66,10 @@ DISCORD_WEBHOOK = 'https://discord.com/api/webhooks/976894637438554143/f1rOdQUB-
 DISCORD_TOKEN = 'DISCORD_TOKEN'
 CATEGORY_ID = 979508900342685696
 # CATEGORY_ID = 979112708530139200
+
+# clustering
+WORD2VEC_MODEL_PATH = DATA_PATH / 'word2vec.model'
+WORD2VEC_WV_PATH = DATA_PATH / 'word2vec.wordvectors'
 
 # Dataset
 DATASET_FILE_PATH = DATA_PATH / 'dataset.npz'
