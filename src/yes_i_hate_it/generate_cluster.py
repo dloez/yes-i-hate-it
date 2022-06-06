@@ -6,7 +6,6 @@ import logging
 import nltk
 import stanza
 import collections
-from functools import lru_cache
 import multiprocessing as mp
 from gensim.models import Word2Vec, KeyedVectors
 from unidecode import unidecode
@@ -58,47 +57,51 @@ def process_text(text):
     return words
 
 
-def process_word(word, clusters, queue):
+def process_word(actions_queue, words_queue, poisson_queue, clusters):
     """Return if a word should be added to a cluster or create a new one"""
-    action = {'word': word, 'name': ''}
-    word_vectors = KeyedVectors.load(str(WORD2VEC_WV_PATH), mmap='r')
+    while True:
+        word = words_queue.get()
+        action = {'word': word, 'name': ''}
+        word_vectors = KeyedVectors.load(str(WORD2VEC_WV_PATH), mmap='r')
 
-    # first batch of words will trigger a new cluster creation for all of them
-    # should this be handled? does it really matter?
-    if not clusters:
-        action['name'] = NEW_CLUSTER
-        queue.put(action)
-        return
-                
-    best_similarity = 0
-    best_cluster = ''
-    found_in = ''
-    for key, cluster_words in clusters.items():
-        similarity, is_found = get_cluster_similarity(word_vectors, cluster_words, word)
-        if is_found:
-            found_in = key 
-
-        if not best_similarity:
-            best_similarity = similarity
-            best_cluster = key
+        # first batch of words will trigger a new cluster creation for all of them
+        # should this be handled? does it really matter?
+        if not clusters:
+            action['name'] = NEW_CLUSTER
+            actions_queue.put(action)
+            poisson_queue.put('finished')
             continue
+                
+        best_similarity = 0
+        best_cluster = ''
+        found_in = ''
+        for key, cluster_words in clusters.items():
+            similarity, is_found = get_cluster_similarity(word_vectors, cluster_words, word)
+            if is_found:
+                found_in = key 
 
-        if similarity > best_similarity:
-            best_similarity = similarity
-            best_cluster = key
+            if not best_similarity:
+                best_similarity = similarity
+                best_cluster = key
+                continue
 
-    if best_similarity >= MIN_SIMILARITY:
-        action['data'] = {}
-        if found_in:
-            action['name'] = SWAP
-            action['data']['from_cluster'] = found_in
-            action['data']['to_cluster'] = best_cluster
+            if similarity > best_similarity:
+                best_similarity = similarity
+                best_cluster = key
+
+        if best_similarity >= MIN_SIMILARITY:
+            action['data'] = {}
+            if found_in:
+                action['name'] = SWAP
+                action['data']['from_cluster'] = found_in
+                action['data']['to_cluster'] = best_cluster
+            else:
+                action['name'] = ADD
+                action['data']['to_cluster'] = best_cluster
         else:
-            action['name'] = ADD
-            action['data']['to_cluster'] = best_cluster
-    else:
-        action['name'] = NEW_CLUSTER
-    queue.put(action)
+            action['name'] = NEW_CLUSTER
+        actions_queue.put(action)
+        poisson_queue.put('finished')
 
 
 def chunk_words(words, size):
@@ -113,10 +116,19 @@ def generate_clusters(words):
     clusters = manager.dict()
 
     # instantiate queue for multiprocessing communication
-    queue = mp.Queue()
+    actions_queue = mp.Queue()
+    words_queue = mp.Queue()
+    poisson_queue = mp.Queue()
 
     new_cluster = 0
     size = mp.cpu_count()
+    processes_count = mp.cpu_count()
+
+    processes = []
+    for i in range(processes_count):
+        process = mp.Process(target=process_word, args=(actions_queue, words_queue, poisson_queue, clusters))
+        process.start()
+        processes.append(process)
 
     for i in range(EPOCHS):
         logging.warning('Epoch %s', i+1)
@@ -124,19 +136,18 @@ def generate_clusters(words):
         current_words = 0
         for x, chunk in enumerate(chunk_words(words, size)):
             current_words += len(chunk)
-            processes = []
-            for word in chunk:
-                process = mp.Process(target=process_word, args=(word, clusters, queue))
-                process.start()
-                processes.append(process)
+            for word, process in zip(chunk, processes):
+                words_queue.put(word)
             
             returns = []
             for process in processes:
-                returns.append(queue.get())
-
-            for process in processes:
-                process.join()
+                returns.append(actions_queue.get())
             
+            poisson_pills = 0
+            while poisson_pills < processes_count:
+                poisson_queue.get()
+                poisson_pills += 1
+
             for ret in returns:
                 if ret['name'] == NEW_CLUSTER:
                     key = f'C{new_cluster}'
@@ -171,7 +182,6 @@ def generate_clusters(words):
         print('')
         
 
-@lru_cache
 def get_cluster_similarity(word_vectors, cluster_words, word):
     """Return average similary between words """
     similarity = 0
