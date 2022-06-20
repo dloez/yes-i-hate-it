@@ -1,12 +1,14 @@
 """Process tweets and generate bag of worlds"""
 import re
 import sys
-# import random
 import logging
-# import multiprocessing as mp
+import multiprocessing as mp
 import nltk
 import stanza
+import numpy as np
 from gensim.models import Word2Vec, KeyedVectors
+from sklearn.cluster import KMeans
+from sklearn.metrics import silhouette_samples, silhouette_score
 from unidecode import unidecode
 from nltk.corpus import stopwords
 from sqlalchemy import Column, String, Integer, ForeignKey
@@ -22,36 +24,41 @@ from yes_i_hate_it.config import CLUSTER_LOG_FILE
 from yes_i_hate_it.config import WORD2VEC_MODEL_PATH, WORD2VEC_WV_PATH
 
 
-class Word(BASE):
-    """Word base clase to interact with database"""
-    __tablename__ = 'word'
+#class Word(BASE):
+#    """Word base clase to interact with database"""
+#    __tablename__ = 'word'
+#
+#    word = Column(String, primary_key=True)
+#    cluster_id = Column(Integer, ForeignKey("cluster.id"), unique=False)
+#    cluster = relationship('Cluster', back_populates='words')
 
-    word = Column(String, primary_key=True)
-    cluster_id = Column(Integer, ForeignKey("cluster.id"), unique=False)
-    cluster = relationship('Cluster', back_populates='words')
 
-
-class Cluster(BASE):
-    """Cluster base clase to interact with databse"""
-    __tablename__ = 'cluster'
-
-    id = Column(Integer, primary_key=True)
-    words = relationship('Word', back_populates='cluster')
+#class Cluster(BASE):
+#    """Cluster base clase to interact with databse"""
+#    __tablename__ = 'cluster'
+#
+#    id = Column(Integer, primary_key=True)
+#    words = relationship('Word', back_populates='cluster')
 
 
 def get_tweets(session, amount):
-    """Return n amount of not processed tweets from database"""
+    """Return n amount of not processed tweets from database""" 
     # pylint: disable = singleton-comparison
     tweets = session.query(Tweet).filter(Tweet.processed==False).limit(amount).all()
+    tweets_text = []
     for tweet in tweets:
         tweet.processed = True
+        tweets_text.append(tweet.text)
     session.add_all(tweets)
     session.commit()
-    return tweets
+    return tweets_text
 
 
-def process_text(text):
+def process_text(text, nlp=None):
     """Normalize and return list of words from text"""
+    if not nlp:
+        nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
+
     # remove URLs
     text = re.sub(r'(https|ftp|http):\/\/([\w_-]+(?:(?:\.[\w_-]+)+))([\w.,@?^=%&:\/~+#-]*[\w@?^=%&\/~+#-])', '', text)
     text = unidecode(text)
@@ -76,51 +83,6 @@ def process_text(text):
 def create_clusters(words):
     """Create clusters"""
     word_vectors = KeyedVectors.load(str(WORD2VEC_WV_PATH), mmap='r')
-    # c1 = {'words': [], 'mean_similarity': 0}
-    clusters = {} #{'c1': c1}
-    clustered_words = {} #{'porterazos': 'c1'}
-    new_cluster = 1
-    for word in words:
-        word_similarities = max_normalized_sim(word_vectors, word)
-        best_similarity = 0
-        for sim in word_similarities:
-            similarity = sim[1]
-            if similarity > best_similarity:
-                best_similarity = similarity
-                word_to_append = sim[0]
-
-        # if word in clustered_words:
-        #     word_cluster = clustered_words[word]
-        #     if word_to_append in clustered_words:
-        #         if word_cluster == clustered_words[word_to_append]:
-        #             continue
-        # pylint: disable = line-too-long
-        #     clusters[word_cluster]['words'].remove(word)
-        #     clusters[word_cluster]['mean_similarity'] = calculate_mean_similarity(word_vectors, clusters[word_cluster]['words'])
-
-        if word_to_append in clustered_words:
-            cluster = clustered_words[word_to_append]
-            clustered_words[word] = cluster
-            if word not in clusters[cluster]['words']:
-                clusters[cluster]['words'].append(word)
-            clusters[cluster]['mean_similarity'] = calculate_mean_similarity(word_vectors, clusters[cluster]['words'])
-        else:
-            cluster_name = f'c{new_cluster}'
-            clustered_words[word] = cluster_name
-            clustered_words[word_to_append] = cluster_name
-            cluster = {'words': [word, word_to_append], 'mean_similarity': best_similarity}
-            clusters[cluster_name] = cluster
-            new_cluster += 1
-
-        print(
-            f"Words: {len(clustered_words)}/{len(words)} || Clusters: {len(clusters)} || {proportional_hashtags(len(clustered_words),len(words))}",
-            end='\r'
-        )
-        sys.stdout.flush()
-    print('')
-    # print(clustered_words)
-    # print(clusters)
-    represent_data(clusters)
     return clusters
 
 
@@ -193,7 +155,7 @@ def represent_data(clusters):
     plt.clf()
     
 
-def generate_boc(clusters, session):
+def save_clusters(clusters, session):
     word_storage = []
     cluster_storage = []
     for i, cluster in enumerate(clusters):
@@ -205,6 +167,76 @@ def generate_boc(clusters, session):
         word_storage = []
         session.add(new_cluster)
         session.commit()
+
+
+def vectorize(corpus, model_vector_size, keyed_vector):
+    """Generate vectors from copus (tweets) using word2vec model"""
+    features = []
+    for words in corpus:
+        zero_vector = np.zeros(model_vector_size)
+        vectors = []
+        for word in words:
+            if word in keyed_vector:
+                try:
+                    vectors.append(keyed_vector[word])
+                except KeyError:
+                    continue
+        if vectors:
+            vectors = np.asarray(vectors)
+            avg_vec = vectors.mean(axis=0)
+            features.append(avg_vec)
+        else:
+            features.append(zero_vector)
+    return features
+
+
+def kmeans_clusters(vectors, n_clusters, show_output):
+    """Generate clusters and print Silhouette metrics using Kmeans"""
+    km = KMeans(n_clusters).fit(vectors)
+    print(f"For n_clusters = {n_clusters}")
+    print(f"Silhouette coefficient: {silhouette_score(vectors, km.labels_):0.2f}")
+    print(f"Inertia:{km.inertia_}")
+
+    if show_output:
+        sample_silhouette_values = silhouette_samples(vectors, km.labels_)
+        print(f"Silhouette values:")
+        silhouette_values = []
+        for i in range(n_clusters):
+            cluster_silhouette_values = sample_silhouette_values[km.labels_ == i]
+            silhouette_values.append(
+                (
+                    i,
+                    cluster_silhouette_values.shape[0],
+                    cluster_silhouette_values.mean(),
+                    cluster_silhouette_values.min(),
+                    cluster_silhouette_values.max(),
+                )
+            )
+        silhouette_values = sorted(
+            silhouette_values, key=lambda tup: tup[2], reverse=True
+        )
+        for s in silhouette_values:
+            print(
+                f"    Cluster {s[0]}: Size:{s[1]} | Avg:{s[2]:.2f} | Min:{s[3]:.2f} | Max: {s[4]:.2f}"
+            )
+    return km, km.labels_
+
+
+def process_tweets(tweets_queue, data_queue):
+    nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
+    
+    while True:
+        data = []
+        tweets = tweets_queue.get()
+        for tweet in tweets:
+            data.append(process_text(tweet, nlp))
+        data_queue.put(data)
+
+
+def chunk_tweets(a, n):
+    k, m = divmod(len(a), n)
+    return (a[i*k+min(i, m):(i+1)*k+min(i+1, m)] for i in range(n))
+
 
 def main():
     """Main function"""
@@ -224,38 +256,66 @@ def main():
     session_maker = sessionmaker(bind=engine)
     session = session_maker()
 
-    processed_tweets = []
-    tweets = get_tweets(session, 10)
-
+    corpus = []
+    
+    chunk_size = 1000
+    tweets_queue = mp.Queue()
+    data_queue = mp.Queue()
+    processes_count = mp.cpu_count()
+    processes = []
+     
+    for count in range(processes_count):
+        process = mp.Process(target=process_tweets, args=(tweets_queue, data_queue))
+        process.start()
+        processes.append(process)
+    
+    tweets = get_tweets(session, chunk_size)
+    count = 1
     while tweets:
-        for tweet in tweets:
-            logging.warning("Processing tweet with ID: %s", tweet.tweet_id)
-            processed_tweets.append(process_text(tweet.text))
-        tweets = get_tweets(session, 10)
+        logging.warning("Processing tweets... (%s)", count*chunk_size)
+        count += 1
 
-    model =  Word2Vec(min_count=1, epochs=1, vector_size=100)
-    model.build_vocab(processed_tweets)
+        for chunk in chunk_tweets(tweets, processes_count):
+            tweets_queue.put(chunk)
+
+        returns = []
+        for process in processes:
+            returns.extend(data_queue.get())
+
+        corpus.extend(returns)
+        tweets = get_tweets(session, chunk_size)
+    
+    for process in processes:
+        process.terminate()
+        process.join()
+
+    model = Word2Vec(min_count=1, epochs=1, vector_size=100)
+    model.build_vocab(corpus)
     model.save(str(WORD2VEC_MODEL_PATH))
 
     word_vectors = model.wv
     word_vectors.save(str(WORD2VEC_WV_PATH))
+    model_vector_size = model.vector_size
     del model
 
-    # delete repeated words
-    clean_words = set()
-    for sentence in processed_tweets:
-        for word in sentence:
-            clean_words.add(word)
-    del processed_tweets
+    vectors = vectorize(corpus, model_vector_size, word_vectors)
+    clusters = kmeans_clusters(vectors, 100, True)
+    print(clusters)
 
-    clean_words = list(clean_words)
-    clusters = create_clusters(clean_words)
-    generate_boc(clusters, session)
+    # delete repeated words
+    #clean_words = set()
+    #for sentence in processed_tweets:
+    #    for word in sentence:
+    #        clean_words.add(word)
+    #del processed_tweets
+
+    #clean_words = list(clean_words)
+    #clusters = create_clusters(clean_words)
+    #save_clusters(clusters, session)
 
 
 # download stopwords
 nltk.download('stopwords')
-nlp = stanza.Pipeline(lang='es', processors='tokenize,mwt,pos,lemma')
 
 EPOCHS = 10
 
