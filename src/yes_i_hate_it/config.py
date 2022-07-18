@@ -70,6 +70,8 @@ CATEGORY_ID = 979508900342685696
 # clustering
 WORD2VEC_MODEL_PATH = DATA_PATH / 'word2vec.model'
 WORD2VEC_WV_PATH = DATA_PATH / 'word2vec.wordvectors'
+KMEANS_DATA_PATH = DATA_PATH / 'kmeans_data.json'
+KMEANS_GRAPH_PATH = DATA_PATH / 'kmeans_graph.png'
 
 # Dataset
 DATASET_FILE_PATH = DATA_PATH / 'dataset.npz'

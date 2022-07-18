@@ -7,6 +7,8 @@ import nltk
 import stanza
 import numpy as np
 import sys
+import json
+import matplotlib.pyplot as plt
 from gensim.models import Word2Vec, KeyedVectors
 from sklearn.cluster import KMeans
 from sklearn.metrics import silhouette_samples, silhouette_score
@@ -21,7 +23,8 @@ from yes_i_hate_it.gather_tweets import Tweet
 from yes_i_hate_it.config import TWEETS_DB_PATH
 from yes_i_hate_it.config import BASE
 from yes_i_hate_it.config import CLUSTER_LOG_FILE
-from yes_i_hate_it.config import WORD2VEC_MODEL_PATH, WORD2VEC_WV_PATH
+from yes_i_hate_it.config import WORD2VEC_MODEL_PATH, WORD2VEC_WV_PATH 
+from yes_i_hate_it.config import KMEANS_DATA_PATH, KMEANS_GRAPH_PATH
 
 
 class Word(BASE):
@@ -214,7 +217,7 @@ def main():
         process.terminate()
         process.join()
     
-    model = Word2Vec(min_count=3, epochs=1, vector_size=100)
+    model = Word2Vec(min_count=1, epochs=1, vector_size=100)
     model.build_vocab(corpus)
     model.train(corpus, total_examples=len(corpus), epochs=30, report_delay=1)
     model.save(str(WORD2VEC_MODEL_PATH))
@@ -223,17 +226,83 @@ def main():
     word_vectors.save(str(WORD2VEC_WV_PATH))
     del model
     
-    vectors = vectorize(word_vectors)
-    n_clusters = 100
-    km = kmeans_clusters(vectors, n_clusters, True)
-    clusters = compose_words_clusters(word_vectors, km, n_clusters)
-    save_clusters(clusters, session)
+#    vectors = vectorize(word_vectors)
+#    n_clusters = 100
+#    km = kmeans_clusters(vectors, n_clusters, True)
+#    clusters = compose_words_clusters(word_vectors, km, n_clusters)
+#    save_clusters(clusters, session)
 
-  
+
+def test_kmeans():
+    word_vectors = KeyedVectors.load(str(WORD2VEC_WV_PATH))
+    vectors = vectorize(word_vectors)
+    k_clusters = range(2, K_CLUSTERS)
+    
+    min_sil = 1
+    max_sil = -1
+    mean_sil = 0
+
+    data = {}
+
+    for k in k_clusters:
+        measurement = {'mean': 0, 'min': 1, 'max': -1}
+        for step in range(STEPS):
+            km = kmeans_clusters(vectors, k, False)
+            silhouette = silhouette_score(vectors, km.labels_)
+            measurement['min'] = float(min(measurement['min'], silhouette))
+            measurement['max'] = float(max(measurement['max'], silhouette))
+            measurement['mean'] += silhouette/STEPS
+        data[k] = measurement
+
+    with open(KMEANS_DATA_PATH, 'w') as outfile:
+        json.dump(data, outfile, indent=2)
+
+def plot_kmeans_results():
+    with open(KMEANS_DATA_PATH, 'r') as f:
+        data = json.load(f)
+
+    x = range(2, K_CLUSTERS)
+
+    mean = []
+    mins = []
+    maxs = []
+
+    value_measurement = {'value': -1, 'k': 0}
+    max_values = {'mean': value_measurement, 'min': value_measurement, 'max': value_measurement}
+    content = ['mean', 'min', 'max']
+
+
+    for k in data:
+        mean.append(data[k]['mean'])
+        mins.append(data[k]['min'])
+        maxs.append(data[k]['max'])
+        
+        for c in content:
+            if data[k][c] > max_values[c]['value']:
+                max_values[c]['value'] = data[k][c]
+                max_values[c]['k'] = k
+
+    print(max_values)
+
+    plt.plot(x, mean, 'r', label = "Mean")
+    plt.plot(x, mins, 'b', label = "Min")
+    plt.plot(x, maxs, 'g', label = "Max")
+    plt.legend()
+    plt.xlabel('k')
+    plt.ylabel('silhouette')
+    plt.title('k - silhouette')
+    plt.savefig(KMEANS_GRAPH_PATH)
+    plt.show()
+
 # download stopwords
 nltk.download('stopwords')
 
 EPOCHS = 10
+STEPS = 5
+K_CLUSTERS = 21
 
 if __name__ == '__main__':
     main()
+    test_kmeans()
+    plot_kmeans_results()
+
